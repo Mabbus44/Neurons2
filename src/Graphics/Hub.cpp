@@ -161,6 +161,17 @@ void Hub::handleKeyEvents(SDL_Event& e){
       if(e.window.windowID == _mapWindow.windowId && _mapWindow.isOpen() && _mapWindow.mapRef != nullptr)
         _mapWindow.mapRef->pause = !_mapWindow.mapRef->pause;
       break;
+    case SDLK_PLUS:
+      if(e.window.windowID == _neuronWindow.windowId && _neuronWindow.isOpen() && _neuronWindow.mapRef != nullptr)
+        _neuronWindow.mapRef->zoomIn();
+      if(e.window.windowID == _mapWindow.windowId && _mapWindow.isOpen() && _mapWindow.mapRef != nullptr)
+        _mapWindow.mapRef->zoomIn();
+      break;
+    case SDLK_MINUS:
+      if(e.window.windowID == _neuronWindow.windowId && _neuronWindow.isOpen() && _neuronWindow.mapRef != nullptr)
+        _neuronWindow.mapRef->zoomOut();
+      if(e.window.windowID == _mapWindow.windowId && _mapWindow.isOpen() && _mapWindow.mapRef != nullptr)
+        _mapWindow.mapRef->zoomOut();
   }
 }
 

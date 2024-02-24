@@ -26,6 +26,8 @@ const int FACTOR_SIZE = INPUT_SIZE * AnimalAction::COUNT;
 const int MAX_MUTATION = 10;
 const int RESET_HERBIVORE_COUNT = 10;
 const int RESET_CARNIVORE_COUNT = 5;
+const int MAX_ZOOM = 10;
+const int DEFAULT_ZOOM = 3;
 const bool DEBUG = false;
 
 #endif // CONSTANTS_H_INCLUDED

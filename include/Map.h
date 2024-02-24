@@ -43,6 +43,8 @@ class Map
     bool loadMapSettings(string fileName);
     bool tick();              //If generation is done the map is reset. Then progress time one tick. Returns true when generation is done.
     void draw(MapWindow* window);
+    void zoomIn() {_zoom++; if(_zoom > MAX_ZOOM) _zoom = MAX_ZOOM;}
+    void zoomOut() {_zoom--; if(_zoom < 1) _zoom = 1;}
     bool validConfig() {return _validConfig;}
     bool generationDone() {return _generationDone;}
     const vector<Carnivore*>& carnivores(){return _carnivores;}
@@ -52,6 +54,9 @@ class Map
     const vector<Herbivore*>& bestHerbivore(){return _bestHerbivores;}
     Entity* getSelectedEntity();
     int tickCount() {return _tickCount;}
+    int zoom() {return _zoom;}
+    int sizeX() {return _sizeX;}
+    int sizeY() {return _sizeY;}
     bool pause=false;
     bool oneStep=false;
     void output(string tab, OutputLevel level);
@@ -81,6 +86,7 @@ class Map
     bool _generationDone = false;
     int _sizeX, _sizeY;
     int _tickCount;
+    int _zoom = DEFAULT_ZOOM;
     vector<vector<Entity*>> _map;
     vector<Carnivore*> _carnivores;
     vector<Herbivore*> _herbivores;

@@ -29,7 +29,6 @@ class SDLWindow
   protected:
     SDL_Window* _window = NULL;
     SDL_Renderer* _renderer = NULL;
-    SDL_Texture* _texture = NULL;
     bool _open = false;
     int _windowHeight, _windowWidth;
 };
@@ -67,6 +66,5 @@ class MapWindow: public SDLWindow{
     void drawPixel(int x, int y, int r, int g, int b, bool selected=false);
     Map* mapRef = nullptr;
   protected:
-    //uint8_t* _pixels;
 };
 #endif // SDLWINDOW_H

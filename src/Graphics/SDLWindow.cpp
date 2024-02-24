@@ -28,23 +28,15 @@ void SDLWindow::open(int x, int y, int windowHeight, int windowWidth){
   if (_renderer == NULL)
     cout << "Unable to create renderer: " << SDL_GetError() << endl;
   SDL_RenderSetLogicalSize(_renderer, windowWidth, windowHeight);
-  _texture = SDL_CreateTexture(_renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STREAMING, windowWidth, windowHeight);
-  if (_texture == NULL)
-    cout << "Unable to create texture: " << SDL_GetError() << endl;
 }
 
 void SDLWindow::resizeWindow(int windowHeight, int windowWidth){
   this->_windowHeight = windowHeight;
   this->_windowWidth = windowWidth;
-  SDL_DestroyTexture(_texture);
   SDL_RenderSetLogicalSize(_renderer, windowWidth, windowHeight);
-  _texture = SDL_CreateTexture(_renderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_STREAMING, windowWidth, windowHeight);
-  if (_texture == NULL)
-    cout << "Unable to create texture: " << SDL_GetError() << endl;
 }
 
 void SDLWindow::close(){
-  SDL_DestroyTexture(_texture);
   SDL_DestroyRenderer(_renderer);
   SDL_DestroyWindow(_window);
   keyFocus = false;
@@ -252,42 +244,24 @@ MapWindow::MapWindow(){
 }
 
 MapWindow::~MapWindow(){
-//  if(_open)
-//    delete[] _pixels;
 }
 
 void MapWindow::open(int x, int y, int windowHeight, int windowWidth){
 	if(_open)
     return;
 	SDLWindow::open(x, y, windowHeight, windowWidth);
-/*  _pixels = new uint8_t[windowWidth * windowHeight * 4];
-  for(int i=0; i<windowWidth*windowHeight; i++){
-    _pixels[i*4] = 0xFF;
-    _pixels[i*4+1] = 0xFF;
-    _pixels[i*4+2] = 0xFF;
-    _pixels[i*4+3] = 0xFF;
-  }*/
 }
 
 void MapWindow::close(){
   if(_open){
     if(mapRef != nullptr)
       mapRef->pause = false;
-//    delete[] _pixels;
     SDLWindow::close();
   }
 }
 
 void MapWindow::resizeWindow(int windowHeight, int windowWidth){
 	SDLWindow::resizeWindow(windowHeight, windowWidth);
-/*  delete [] _pixels;
-  _pixels = new uint8_t[windowWidth * windowHeight * 4];
-  for(int i=0; i<windowWidth*windowHeight; i++){
-    _pixels[i*4] = 0x00;
-    _pixels[i*4+1] = 0x00;
-    _pixels[i*4+2] = 0xFF;
-    _pixels[i*4+3] = 0xFF;
-  }*/
 }
 
 void MapWindow::prepareRender(){
@@ -295,25 +269,13 @@ void MapWindow::prepareRender(){
     cout << "No mapref" << endl;
     return;
   }
-  for(int i=0; i<_windowWidth*_windowHeight; i++){
-    _pixels[i*4] = 0xFF;
-    _pixels[i*4+1] = 0xFF;
-    _pixels[i*4+2] = 0xFF;
-    _pixels[i*4+3] = 0xFF;
-  }
-  mapRef->draw(this);
-  int texture_pitch = 0;
-  void* texture_pixels = NULL;
-  if (SDL_LockTexture(_texture, NULL, &texture_pixels, &texture_pitch) != 0) {
-    cout << "Unable to lock texture: " << SDL_GetError() << endl;
-  }
-  else {
-    memcpy(texture_pixels, _pixels, texture_pitch * _windowHeight);
-  }
-  SDL_UnlockTexture(_texture);
-  SDL_SetRenderDrawColor(_renderer, 0x00, 0x00, 0x00, 0xFF );
+  SDL_SetRenderDrawColor(_renderer, 0xFF, 0xFF, 0xFF, 0xFF );
   SDL_RenderClear(_renderer);
-  SDL_RenderCopy(_renderer, _texture, NULL, NULL);
+  int zoom = mapRef->zoom();
+  SDL_SetRenderDrawColor( _renderer, 0x00, 0x00, 0x00, 0xFF );
+  SDL_Rect rect = {0,0,mapRef->sizeX()*zoom+2,mapRef->sizeY()*zoom+2};
+  SDL_RenderDrawRect( _renderer, &rect);
+  mapRef->draw(this);
 }
 
 void MapWindow::render(){
@@ -324,71 +286,15 @@ void MapWindow::drawPixel(int x, int y, int r, int g, int b, bool selected){
   if(x<0 || x>=_windowWidth/2 || y<0 || y>=_windowHeight/2)
     return;
 
-  _pixels[(2*x+2*y*_windowWidth)*4] = r;
-  _pixels[(2*x+1+2*y*_windowWidth)*4] = r;
-  _pixels[(2*x+(2*y+1)*_windowWidth)*4] = r;
-  _pixels[(2*x+1+(2*y+1)*_windowWidth)*4] = r;
-  _pixels[(2*x+2*y*_windowWidth)*4+1] = g;
-  _pixels[(2*x+1+2*y*_windowWidth)*4+1] = g;
-  _pixels[(2*x+(2*y+1)*_windowWidth)*4+1] = g;
-  _pixels[(2*x+1+(2*y+1)*_windowWidth)*4+1] = g;
-  _pixels[(2*x+2*y*_windowWidth)*4+2] = b;
-  _pixels[(2*x+1+2*y*_windowWidth)*4+2] = b;
-  _pixels[(2*x+(2*y+1)*_windowWidth)*4+2] = b;
-  _pixels[(2*x+1+(2*y+1)*_windowWidth)*4+2] = b;
-  if(selected){
-    if(x>0){
-      if(y>0){
-        _pixels[(2*x-1+(2*y-1)*_windowWidth)*4] = r;
-        _pixels[(2*x-1+(2*y-1)*_windowWidth)*4+1] = g;
-        _pixels[(2*x-1+(2*y-1)*_windowWidth)*4+2] = b;
-      }
-      _pixels[(2*x-1+(2*y)*_windowWidth)*4] = r;
-      _pixels[(2*x-1+(2*y)*_windowWidth)*4+1] = g;
-      _pixels[(2*x-1+(2*y)*_windowWidth)*4+2] = b;
-      _pixels[(2*x-1+(2*y+1)*_windowWidth)*4] = r;
-      _pixels[(2*x-1+(2*y+1)*_windowWidth)*4+1] = g;
-      _pixels[(2*x-1+(2*y+1)*_windowWidth)*4+2] = b;
-      if(y<(_windowHeight/2-1)){
-        _pixels[(2*x-1+(2*y+2)*_windowWidth)*4] = r;
-        _pixels[(2*x-1+(2*y+2)*_windowWidth)*4+1] = g;
-        _pixels[(2*x-1+(2*y+2)*_windowWidth)*4+2] = b;
-      }
-    }
-    if(y>0){
-      _pixels[(2*x+(2*y-1)*_windowWidth)*4] = r;
-      _pixels[(2*x+(2*y-1)*_windowWidth)*4+1] = g;
-      _pixels[(2*x+(2*y-1)*_windowWidth)*4+2] = b;
-      _pixels[(2*x+1+(2*y-1)*_windowWidth)*4] = r;
-      _pixels[(2*x+1+(2*y-1)*_windowWidth)*4+1] = g;
-      _pixels[(2*x+1+(2*y-1)*_windowWidth)*4+2] = b;
-    }
-    if(x<(_windowWidth/2-1)){
-      if(y>0){
-        _pixels[(2*x+2+(2*y-1)*_windowWidth)*4] = r;
-        _pixels[(2*x+2+(2*y-1)*_windowWidth)*4+1] = g;
-        _pixels[(2*x+2+(2*y-1)*_windowWidth)*4+2] = b;
-      }
-      _pixels[(2*x+2+(2*y)*_windowWidth)*4] = r;
-      _pixels[(2*x+2+(2*y)*_windowWidth)*4+1] = g;
-      _pixels[(2*x+2+(2*y)*_windowWidth)*4+2] = b;
-      _pixels[(2*x+2+(2*y+1)*_windowWidth)*4] = r;
-      _pixels[(2*x+2+(2*y+1)*_windowWidth)*4+1] = g;
-      _pixels[(2*x+2+(2*y+1)*_windowWidth)*4+2] = b;
-      if(y<(_windowHeight/2-1)){
-        _pixels[(2*x+2+(2*y+2)*_windowWidth)*4] = r;
-        _pixels[(2*x+2+(2*y+2)*_windowWidth)*4+1] = g;
-        _pixels[(2*x+2+(2*y+2)*_windowWidth)*4+2] = b;
-      }
-    }
-    if(y<(_windowHeight/2-1)){
-      _pixels[(2*x+(2*y+2)*_windowWidth)*4] = r;
-      _pixels[(2*x+(2*y+2)*_windowWidth)*4+1] = g;
-      _pixels[(2*x+(2*y+2)*_windowWidth)*4+2] = b;
-      _pixels[(2*x+1+(2*y+2)*_windowWidth)*4] = r;
-      _pixels[(2*x+1+(2*y+2)*_windowWidth)*4+1] = g;
-      _pixels[(2*x+1+(2*y+2)*_windowWidth)*4+2] = b;
-    }
-  }
+  int zoom = mapRef->zoom();
+  int zoomX2 = mapRef->zoom()*2;
+  int zoomD2 = mapRef->zoom()/2;
+  if(zoomD2 == 0)
+    zoomD2 = 1;
+  SDL_SetRenderDrawColor( _renderer, r, g, b, 0xFF );
+  SDL_Rect fillRect = {x*zoom+1,y*zoom+1,zoom,zoom};
+  if(selected)
+    fillRect = {x*zoom-zoomD2, y*zoom-zoomD2, zoomX2, zoomX2};
+  SDL_RenderFillRect( _renderer, &fillRect);
 }
 
