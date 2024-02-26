@@ -58,6 +58,7 @@ class Map
     int zoom() {return _zoom;}
     int sizeX() {return _sizeX;}
     int sizeY() {return _sizeY;}
+    int generationCount() {return _generationCount;}
     bool pause=false;
     bool oneStep=false;
     void output(string tab, OutputLevel level);
@@ -88,6 +89,7 @@ class Map
     int _sizeX, _sizeY;
     int _tickCount;
     int _zoom = DEFAULT_ZOOM;
+    int _generationCount = 0;
     vector<vector<shared_ptr<Entity>>> _map;
     vector<shared_ptr<Carnivore>> _carnivores;
     vector<shared_ptr<Herbivore>> _herbivores;

@@ -144,19 +144,21 @@ void NeuronsWindow::prepareRender(){
     x = 10;
     y = 150;
     drawText(x,y, "Map", {0xFF, 0xFF, 0xFF},20);
-    drawText(x,y+21, "Tick:", {0xFF, 0xFF, 0xFF},15);
-    drawText(x+96,y+21, to_string(mapRef->tickCount()), {0xFF, 0xFF, 0xFF},15);
-    drawText(x,y+37, "Gen done:", {0xFF, 0xFF, 0xFF},15);
+    drawText(x,y+21, "Generation:", {0xFF, 0xFF, 0xFF},15);
+    drawText(x+96,y+21, to_string(mapRef->generationCount() + 1), {0xFF, 0xFF, 0xFF},15);
+    drawText(x,y+37, "Tick:", {0xFF, 0xFF, 0xFF},15);
+    drawText(x+96,y+37, to_string(mapRef->tickCount()), {0xFF, 0xFF, 0xFF},15);
+    drawText(x,y+53, "Gen done:", {0xFF, 0xFF, 0xFF},15);
     if(mapRef->generationDone())
-      drawText(x+96,y+37, "True", {0xFF, 0xFF, 0xFF},15);
+      drawText(x+96,y+53, "True", {0xFF, 0xFF, 0xFF},15);
     else
-      drawText(x+96,y+37, "False", {0xFF, 0xFF, 0xFF},15);
-    drawText(x,y+53, "Carni count:", {0xFF, 0xFF, 0xFF},15);
-    drawText(x+96,y+53, to_string(mapRef->carnivores().size()), {0xFF, 0xFF, 0xFF},15);
-    drawText(x,y+69, "Herbi count:", {0xFF, 0xFF, 0xFF},15);
-    drawText(x+96,y+69, to_string(mapRef->herbivores().size()), {0xFF, 0xFF, 0xFF},15);
-    drawText(x,y+85, "Plant count:", {0xFF, 0xFF, 0xFF},15);
-    drawText(x+96,y+85, to_string(mapRef->plants().size()), {0xFF, 0xFF, 0xFF},15);
+      drawText(x+96,y+53, "False", {0xFF, 0xFF, 0xFF},15);
+    drawText(x,y+69, "Carni count:", {0xFF, 0xFF, 0xFF},15);
+    drawText(x+96,y+69, to_string(mapRef->carnivores().size()), {0xFF, 0xFF, 0xFF},15);
+    drawText(x,y+85, "Herbi count:", {0xFF, 0xFF, 0xFF},15);
+    drawText(x+96,y+85, to_string(mapRef->herbivores().size()), {0xFF, 0xFF, 0xFF},15);
+    drawText(x,y+101, "Plant count:", {0xFF, 0xFF, 0xFF},15);
+    drawText(x+96,y+101, to_string(mapRef->plants().size()), {0xFF, 0xFF, 0xFF},15);
 
     //Entity stats
     x = 170;

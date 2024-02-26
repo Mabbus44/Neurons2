@@ -195,8 +195,9 @@ bool Map::tick(){
     saveBestHerbivores();
   if((int)_carnivores.size() > 0 && (int)_carnivores.size() <= RESET_CARNIVORE_COUNT && (int)_bestCarnivores.size() == 0)
     saveBestCarnivores();
-  if((int)_herbivores.size() <= RESET_HERBIVORE_COUNT && (int)_carnivores.size() <= RESET_CARNIVORE_COUNT){
+  if(!_generationDone && (int)_herbivores.size() <= RESET_HERBIVORE_COUNT && (int)_carnivores.size() <= RESET_CARNIVORE_COUNT){
     _generationDone = true;
+    _generationCount++;
   }
   oneStep = false;
   _tickCount++;
