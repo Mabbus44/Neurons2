@@ -1,0 +1,9 @@
+* Remove "init i"
+* Supply filename to "create map"
+* Move constants to map settings
+* Save mapstate
+* Load mapstate
+* Implement copy map
+* Put random element in action choise for entity
+* Support arbitrary input size
+* Add name to maps and option to edit names
