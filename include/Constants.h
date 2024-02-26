@@ -1,5 +1,7 @@
 #ifndef CONSTANTS_H_INCLUDED
 #define CONSTANTS_H_INCLUDED
+#include <string>
+using namespace std;
 
 enum SimulationType {SIMULATION_STEP, SIMULATION_GENERATION};
 enum SpawnerType {EVEN_DISTROBUTION};
@@ -29,5 +31,6 @@ const int RESET_CARNIVORE_COUNT = 5;
 const int MAX_ZOOM = 10;
 const int DEFAULT_ZOOM = 3;
 const bool DEBUG = false;
+const string DEFAULT_SETTINGS_FILENAME = "defaultMapSettings.mse";
 
 #endif // CONSTANTS_H_INCLUDED

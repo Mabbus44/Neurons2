@@ -24,7 +24,7 @@ void ConsoleHandler::run(){
       cout << "\n\n\n\n----------Maps----------" << endl;
       outputMapsOneline();
       cout << "\n----------Main menu----------" << endl;
-      cout << "create \t\tceates new map" << endl;
+      cout << "create s\tceates new map" << endl;
       cout << "delete i\tdeletes map with id i" << endl;
       cout << "viewmap i \tshows graphics for map i" << endl;
       cout << "runstep i j \truns map with id i for j simulation steps" << endl;

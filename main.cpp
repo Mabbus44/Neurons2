@@ -9,12 +9,14 @@
 #include <iostream>
 
 using namespace std;
+const std::string b = "cds";
 
 int main( int argc, char* args2[] )
 {
   srand (time(NULL));
   Hub h;
   h.run();
+  std::string a = "abs";
 
   return 0;
 }

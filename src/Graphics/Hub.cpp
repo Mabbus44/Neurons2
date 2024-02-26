@@ -11,7 +11,7 @@ Hub::~Hub()
 }
 
 void Hub::run(){
-  createMap({"mapSettings.json"});
+  createMap({DEFAULT_SETTINGS_FILENAME});
   auto _consoleRet = async(&ConsoleHandler::run, &_console);
   while(true){
     parseConsoleInstructions();
@@ -189,14 +189,15 @@ void Hub::runSimulations(){
 
 void Hub::createMap(vector<string> args){
   cout << "Creating map " << _maps.size() << "..." << endl;
-  if(args.size() < 1){
-    cout << "Error: No filename provided" << endl;
-    return;
-  }
+  if(args[0].size() == 0)
+    args[0] = DEFAULT_SETTINGS_FILENAME;
+  if(args[0][0] == '/')
+    args[0] = args[0].substr(1, args[0].size() - 1);
   shared_ptr<Map> m = make_shared<Map>();
   if(m->loadMapSettings(args[0])){
     _maps.push_back(m);
     cout << "Map " << _maps.size()-1 << " created" << endl;
+    m->resetMap();
   }else{
     cout << "Error: Could not create map" << endl;
   }

@@ -1,5 +1,4 @@
 TODO
-* Supply filename to "create map"
 * Move constants to map settings
 * Save mapstate
 * Load mapstate
@@ -8,5 +7,10 @@ TODO
 * Support arbitrary input size
 * Add name to maps and option to edit names
 
+Bugs
+* Font fails to load
+* Viewmap does not replace already open windows
+
 Done
 * Remove "init i"
+* Supply filename to "create map"
