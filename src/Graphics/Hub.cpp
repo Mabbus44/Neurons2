@@ -126,51 +126,51 @@ void Hub::handleKeyEvents(SDL_Event& e){
   switch((int)e.key.keysym.sym)
   {
     case SDLK_q:
-      if(e.window.windowID == _neuronWindow.windowId && _neuronWindow.isOpen() && _neuronWindow.mapRef != nullptr)
+      if(e.window.windowID == _neuronWindow.windowId && _neuronWindow.isOpen() && _neuronWindow.mapRef)
         _neuronWindow.mapRef->selectedEntityType--;
-      if(e.window.windowID == _mapWindow.windowId && _mapWindow.isOpen() && _mapWindow.mapRef != nullptr)
+      if(e.window.windowID == _mapWindow.windowId && _mapWindow.isOpen() && _mapWindow.mapRef)
         _mapWindow.mapRef->selectedEntityType--;
       break;
     case SDLK_w:
-      if(e.window.windowID == _neuronWindow.windowId && _neuronWindow.isOpen() && _neuronWindow.mapRef != nullptr)
+      if(e.window.windowID == _neuronWindow.windowId && _neuronWindow.isOpen() && _neuronWindow.mapRef)
         _neuronWindow.mapRef->selectedEntityType++;
-      if(e.window.windowID == _mapWindow.windowId && _mapWindow.isOpen() && _mapWindow.mapRef != nullptr)
+      if(e.window.windowID == _mapWindow.windowId && _mapWindow.isOpen() && _mapWindow.mapRef)
         _mapWindow.mapRef->selectedEntityType++;
       break;
     case SDLK_a:
-      if(e.window.windowID == _neuronWindow.windowId && _neuronWindow.isOpen() && _neuronWindow.mapRef != nullptr)
+      if(e.window.windowID == _neuronWindow.windowId && _neuronWindow.isOpen() && _neuronWindow.mapRef)
         _neuronWindow.mapRef->selectedEntityId--;
-      if(e.window.windowID == _mapWindow.windowId && _mapWindow.isOpen() && _mapWindow.mapRef != nullptr)
+      if(e.window.windowID == _mapWindow.windowId && _mapWindow.isOpen() && _mapWindow.mapRef)
         _mapWindow.mapRef->selectedEntityId--;
       break;
     case SDLK_s:
-      if(e.window.windowID == _neuronWindow.windowId && _neuronWindow.isOpen() && _neuronWindow.mapRef != nullptr)
+      if(e.window.windowID == _neuronWindow.windowId && _neuronWindow.isOpen() && _neuronWindow.mapRef)
         _neuronWindow.mapRef->selectedEntityId++;
-      if(e.window.windowID == _mapWindow.windowId && _mapWindow.isOpen() && _mapWindow.mapRef != nullptr)
+      if(e.window.windowID == _mapWindow.windowId && _mapWindow.isOpen() && _mapWindow.mapRef)
         _mapWindow.mapRef->selectedEntityId++;
       break;
     case SDLK_z:
-      if(e.window.windowID == _neuronWindow.windowId && _neuronWindow.isOpen() && _neuronWindow.mapRef != nullptr)
+      if(e.window.windowID == _neuronWindow.windowId && _neuronWindow.isOpen() && _neuronWindow.mapRef)
         _neuronWindow.mapRef->oneStep = true;
-      if(e.window.windowID == _mapWindow.windowId && _mapWindow.isOpen() && _mapWindow.mapRef != nullptr)
+      if(e.window.windowID == _mapWindow.windowId && _mapWindow.isOpen() && _mapWindow.mapRef)
         _mapWindow.mapRef->oneStep = true;
       break;
     case SDLK_p:
-      if(e.window.windowID == _neuronWindow.windowId && _neuronWindow.isOpen() && _neuronWindow.mapRef != nullptr)
+      if(e.window.windowID == _neuronWindow.windowId && _neuronWindow.isOpen() && _neuronWindow.mapRef)
         _neuronWindow.mapRef->pause = !_neuronWindow.mapRef->pause;
-      if(e.window.windowID == _mapWindow.windowId && _mapWindow.isOpen() && _mapWindow.mapRef != nullptr)
+      if(e.window.windowID == _mapWindow.windowId && _mapWindow.isOpen() && _mapWindow.mapRef)
         _mapWindow.mapRef->pause = !_mapWindow.mapRef->pause;
       break;
     case SDLK_PLUS:
-      if(e.window.windowID == _neuronWindow.windowId && _neuronWindow.isOpen() && _neuronWindow.mapRef != nullptr)
+      if(e.window.windowID == _neuronWindow.windowId && _neuronWindow.isOpen() && _neuronWindow.mapRef)
         _neuronWindow.mapRef->zoomIn();
-      if(e.window.windowID == _mapWindow.windowId && _mapWindow.isOpen() && _mapWindow.mapRef != nullptr)
+      if(e.window.windowID == _mapWindow.windowId && _mapWindow.isOpen() && _mapWindow.mapRef)
         _mapWindow.mapRef->zoomIn();
       break;
     case SDLK_MINUS:
-      if(e.window.windowID == _neuronWindow.windowId && _neuronWindow.isOpen() && _neuronWindow.mapRef != nullptr)
+      if(e.window.windowID == _neuronWindow.windowId && _neuronWindow.isOpen() && _neuronWindow.mapRef)
         _neuronWindow.mapRef->zoomOut();
-      if(e.window.windowID == _mapWindow.windowId && _mapWindow.isOpen() && _mapWindow.mapRef != nullptr)
+      if(e.window.windowID == _mapWindow.windowId && _mapWindow.isOpen() && _mapWindow.mapRef)
         _mapWindow.mapRef->zoomOut();
   }
 }
@@ -197,18 +197,17 @@ void Hub::createMap(vector<string> args){
     cout << "Error: No filename provided" << endl;
     return;
   }
-  Map* m = new Map();
+  shared_ptr<Map> m = make_shared<Map>();
   if(m->loadMapSettings(args[0])){
     _maps.push_back(m);
     cout << "Map " << _maps.size()-1 << " created" << endl;
   }else{
-    delete m;
     cout << "Error: Could not create map" << endl;
   }
 }
 
 void Hub::initMap(vector<int> args){
-  Map* m;
+  shared_ptr<Map> m;
   int i=-1;
   if(args.size()>0)
     i=args[0];
@@ -222,20 +221,19 @@ void Hub::initMap(vector<int> args){
 }
 
 void Hub::deleteMap(vector<int> args){
-  Map* m;
+  shared_ptr<Map> m;
   int i=-1;
   if(args.size()>0)
     i=args[0];
   if(!(m=map(i)))
     return;
   cout << "Deleting map " << i << "..." << endl;
-  delete m;
   _maps.erase(_maps.begin()+i);
   cout << "Map " << i << " deleted" << endl;
 }
 
 void Hub::viewMap(vector<int> args){
-  Map* m;
+  shared_ptr<Map> m;
   int i=-1;
   if(args.size()>0)
     i=args[0];
@@ -253,7 +251,7 @@ void Hub::viewMap(vector<int> args){
 }
 
 void Hub::runSimulationSteps(vector<int> args){
-  Map* m;
+  shared_ptr<Map> m;
   int i=-1;
   if(args.size()>0)
     i=args[0];
@@ -267,7 +265,7 @@ void Hub::runSimulationSteps(vector<int> args){
 }
 
 void Hub::runSimulationGenerations(vector<int> args){
-  Map* m;
+  shared_ptr<Map> m;
   int i=-1;
   if(args.size()>0)
     i=args[0];
@@ -281,7 +279,7 @@ void Hub::runSimulationGenerations(vector<int> args){
 }
 
 void Hub::copyMap(vector<int> args){
-  Map* m;
+  shared_ptr<Map> m;
   int i=-1;
   if(args.size()>0)
     i=args[0];
@@ -307,14 +305,14 @@ void Hub::outputSimulationStatus(vector<int> args){
   }
 }
 
-Map* Hub::map(int i){
+shared_ptr<Map> Hub::map(int i){
   if(_maps.size() == 0){
     cout << "No maps available " << endl;
-    return NULL;
+    return shared_ptr<Map>();
   }
   if(i<-1 || i>=(int)_maps.size()){
     cout << "Map " << i << " does not exist" << endl;
-    return NULL;
+    return shared_ptr<Map>();
   }
   if(i==-1)
     i=_maps.size()-1;

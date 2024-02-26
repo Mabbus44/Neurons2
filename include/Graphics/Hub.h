@@ -4,16 +4,17 @@
 #include "Graphics/ConsoleHandler.h"
 #include <thread>
 #include <future>
+#include <memory>
 
 class SimulationJob{
   public:
     SimulationJob(){};
     SimulationJob(const SimulationJob& other){simulationType=other.simulationType; stepsLeft=other.stepsLeft, m=other.m;}
-    SimulationJob(int simulationType, int stepsLeft, Map* m){this->simulationType=simulationType; this->stepsLeft=stepsLeft; this->m=m;}
+    SimulationJob(int simulationType, int stepsLeft, shared_ptr<Map> m){this->simulationType=simulationType; this->stepsLeft=stepsLeft; this->m=m;}
     ~SimulationJob(){};
     int simulationType;
     int stepsLeft;
-    Map* m;
+    shared_ptr<Map> m;
 };
 
 class Hub
@@ -40,11 +41,11 @@ class Hub
     void handleWindowEvents(SDL_Event& e);
     void handleKeyEvents(SDL_Event& e);
     void runSimulations();
-    Map* map(int i);
+    shared_ptr<Map> map(int i);
     MapWindow _mapWindow;
     NeuronsWindow _neuronWindow;
     ConsoleHandler _console;
-    vector<Map*> _maps;
+    vector<shared_ptr<Map>> _maps;
     vector<SimulationJob> _jobs;
 };
 

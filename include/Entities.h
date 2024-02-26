@@ -4,6 +4,7 @@
 #include <iostream>
 #include <stdlib.h>
 #include <stdint.h>
+#include <memory>
 using namespace std;
 
 class Entity
@@ -31,21 +32,21 @@ class Entity
 class Animal: public Entity
 {
   public:
-    Animal(){if(DEBUG)cout << "Animal(): " << this << endl; init();}
-    Animal(int x, int y, Animal* rawModel);
+    Animal(){init();}
+    Animal(int x, int y, shared_ptr<Animal> rawModel);
     Animal(const Animal &other);
-    virtual ~Animal(){if(DEBUG)cout << "~Animal(): " << this << endl; if(DEBUG)cout << "delete [] _factors: " << (int*)_factors << endl; delete [] _factors;}
+    virtual ~Animal(){}
     AnimalAction action() {return _action;}
-    void decideAction(uint8_t* input);
+    void decideAction(shared_ptr<uint8_t[]> input);
     void addEnergy(int newEnergy);
     bool removeEnergy(int lostEnergy);
-    uint8_t* factors() {return _factors;}
+    shared_ptr<uint8_t[]> factors() {return _factors;}
     int energy() {return _energy;}
 
   protected:
-    void init(Animal* rawModel = nullptr);
+    void init(shared_ptr<Animal> rawModel = nullptr);
     AnimalAction _action;
-    uint8_t* _factors = nullptr;
+    shared_ptr<uint8_t[]> _factors;
     int _energy = START_ENERGY;
 
   private:
@@ -54,9 +55,9 @@ class Animal: public Entity
 class Carnivore: public Animal
 {
   public:
-    Carnivore(){_entityType = EntityType::CARNIVORE;if(DEBUG)cout << "Carnivore(): " << this << endl;}
-    Carnivore(int x, int y, Carnivore* rawModel);
-    virtual ~Carnivore(){if(DEBUG)cout << "~Carnivore(): " << this << endl;}
+    Carnivore(){_entityType = EntityType::CARNIVORE;}
+    Carnivore(int x, int y, shared_ptr<Carnivore> rawModel);
+    virtual ~Carnivore(){}
 
   protected:
 
@@ -66,9 +67,9 @@ class Carnivore: public Animal
 class Herbivore: public Animal
 {
   public:
-    Herbivore(){_entityType = EntityType::HERBIVORE; if(DEBUG)cout << "Herbivore(): " << this << endl;}
-    Herbivore(int x, int y, Herbivore* rawModel);
-    virtual ~Herbivore(){if(DEBUG)cout << "~Herbivore(): " << this << endl;}
+    Herbivore(){_entityType = EntityType::HERBIVORE;}
+    Herbivore(int x, int y, shared_ptr<Herbivore> rawModel);
+    virtual ~Herbivore(){}
 
   protected:
 
@@ -78,9 +79,9 @@ class Herbivore: public Animal
 class Plant: public Entity
 {
   public:
-    Plant(){_entityType = EntityType::PLANT; if(DEBUG)cout << "Plant(): " << this << endl;}
-    Plant(int x, int y) : Entity(x, y){_entityType = EntityType::PLANT; if(DEBUG)cout << "Plant(int x, int y): " << this << endl;}
-    virtual ~Plant(){if(DEBUG)cout << "~Plant(): " << this << endl;}
+    Plant(){_entityType = EntityType::PLANT;}
+    Plant(int x, int y) : Entity(x, y){_entityType = EntityType::PLANT;}
+    virtual ~Plant(){}
 
   protected:
 

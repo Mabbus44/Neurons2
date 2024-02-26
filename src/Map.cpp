@@ -67,7 +67,6 @@ Map::Map()
 
 Map::~Map()
 {
-  cout << "~Map" << endl;
   free();
 }
 
@@ -77,14 +76,14 @@ bool Map::resetMap(){
     return false;
   }
   clearMap();
-  vector<Entity*> row = vector<Entity*>(_sizeX, nullptr);
-  _map = vector<vector<Entity*>>(_sizeY, row);
+  vector<shared_ptr<Entity>> row = vector<shared_ptr<Entity>>(_sizeX);
+  _map = vector<vector<shared_ptr<Entity>>>(_sizeY, row);
 
   int carnivoreCount = 0;
   int herbivoreCount = 0;
   int plantCount = 0;
 
-  for(EntitySpawner* e: _entitySpawners){
+  for(shared_ptr<EntitySpawner> e: _entitySpawners){
     if(e->entityType() == EntityType::CARNIVORE)
       carnivoreCount += e->entityCount();
     else if(e->entityType() == EntityType::HERBIVORE)
@@ -93,16 +92,16 @@ bool Map::resetMap(){
       plantCount += e->entityCount();
   }
 
-  _carnivores = vector<Carnivore*>(carnivoreCount, nullptr);
-  _herbivores = vector<Herbivore*>(herbivoreCount, nullptr);
-  _plants = vector<Plant*>(plantCount, nullptr);
+  _carnivores = vector<shared_ptr<Carnivore>>(carnivoreCount);
+  _herbivores = vector<shared_ptr<Herbivore>>(herbivoreCount);
+  _plants = vector<shared_ptr<Plant>>(plantCount);
 
   int carnivoreId = 0;
   int herbivoreId = 0;
   int plantId = 0;
   int bestCarnivoreId = 0;
   int bestHerbivoreId = 0;
-  for(EntitySpawner* spawner: _entitySpawners){
+  for(shared_ptr<EntitySpawner> spawner: _entitySpawners){
     int entityCount = spawner->entityCount();
     for(int eId=0; eId < entityCount; eId++){
       int retries = 0;
@@ -110,31 +109,31 @@ bool Map::resetMap(){
       while(!entityCreated && retries < 3){
         int posX = spawner->minX() + (rand() % spawner->sizeX(_sizeX-1));
         int posY = spawner->minY() + (rand() % spawner->sizeY(_sizeY-1));
-        if(_map[posX][posY] == nullptr){
-          Entity* e;
+        if(!_map[posX][posY]){
+          shared_ptr<Entity> entity;
           if(spawner->entityType() == EntityType::CARNIVORE){
             bestCarnivoreId++;
             if(bestCarnivoreId >= (int)_bestCarnivores.size())
               bestCarnivoreId = 0;
-            Carnivore* baseCarnivore = nullptr;
+            shared_ptr<Carnivore> baseCarnivore;
             if((int)_bestCarnivores.size() > 0)
               baseCarnivore = _bestCarnivores[bestCarnivoreId];
-            e = new Carnivore(posX, posY, baseCarnivore);
-            _carnivores[carnivoreId++] = (Carnivore*)e;
+            entity = make_shared<Carnivore>(posX, posY, baseCarnivore);
+            _carnivores[carnivoreId++] = dynamic_pointer_cast<Carnivore>(entity);
           }else if(spawner->entityType() == EntityType::HERBIVORE){
             bestHerbivoreId++;
             if(bestHerbivoreId >= (int)_bestHerbivores.size())
               bestHerbivoreId = 0;
-            Herbivore* baseHerbivore = nullptr;
+            shared_ptr<Herbivore> baseHerbivore;
             if((int)_bestHerbivores.size() > 0)
               baseHerbivore = _bestHerbivores[bestHerbivoreId];
-            e = new Herbivore(posX, posY, baseHerbivore);
-            _herbivores[herbivoreId++] = (Herbivore*)e;
+            entity = make_shared<Herbivore>(posX, posY, baseHerbivore);
+            _herbivores[herbivoreId++] = dynamic_pointer_cast<Herbivore>(entity);
           }else if(spawner->entityType() == EntityType::PLANT){
-            e = new Plant(posX, posY);
-            _plants[plantId++] = (Plant*)e;
+            entity = make_shared<Plant>(posX, posY);
+            _plants[plantId++] = dynamic_pointer_cast<Plant>(entity);
           }
-          _map[posX][posY] = e;
+          _map[posX][posY] = entity;
           entityCreated = true;
         }else{
           retries++;
@@ -167,11 +166,9 @@ bool Map::loadMapSettings(string fileName){
   if(fileContents.isMember("entitySpawners") && fileContents["entitySpawners"].isArray()){
     Value entitySpawnersInput = fileContents["entitySpawners"];
     for(Value::ArrayIndex spawnerId = 0; spawnerId < entitySpawnersInput.size(); spawnerId++){
-      EntitySpawner* e = new EntitySpawner();
+      shared_ptr<EntitySpawner> e = make_shared<EntitySpawner>();
       if(e->loadSettings(entitySpawnersInput[spawnerId]))
         _entitySpawners.push_back(e);
-      else
-        delete e;
     }
   }
   if(fileContents["sizeX"].isIntegral() && fileContents["sizeY"].isIntegral() && fileContents["sizeX"].asInt() > 0 &&
@@ -183,7 +180,6 @@ bool Map::loadMapSettings(string fileName){
     return _validConfig;
   }
   _validConfig = true;
-  cout << "Mapsettings loaded successfully" << endl;
   return _validConfig;
 }
 
@@ -207,8 +203,8 @@ bool Map::tick(){
   return _generationDone;
 }
 
-void Map::draw(MapWindow* window){
-  Entity* selected = nullptr;
+void Map::draw(MapWindow& window){
+  shared_ptr<Entity> selected;
   if(selectedEntityId >= 0){
     if(selectedEntityType == SelectableEntityType::SEL_PLANT){
       if(selectedEntityId < (int)_plants.size())
@@ -223,19 +219,17 @@ void Map::draw(MapWindow* window){
         selected = _carnivores[selectedEntityId];
     }
   }
-  for(Entity* e : _plants)
-    window->drawPixel(e->posX(), e->posY(), 0, 0x44, 0, e == selected);
-  for(Entity* e : _herbivores)
-    window->drawPixel(e->posX(), e->posY(), 0, 0, 0xFF, e == selected);
-  for(Entity* e : _carnivores)
-    window->drawPixel(e->posX(), e->posY(), 0x88, 0, 0, e == selected);
+  for(shared_ptr<Entity> e : _plants)
+    window.drawPixel(e->posX(), e->posY(), 0, 0x44, 0, e == selected);
+  for(shared_ptr<Entity> e : _herbivores)
+    window.drawPixel(e->posX(), e->posY(), 0, 0, 0xFF, e == selected);
+  for(shared_ptr<Entity> e : _carnivores)
+    window.drawPixel(e->posX(), e->posY(), 0x88, 0, 0, e == selected);
 }
 
 void Map::free(){
   _validConfig = false;
   clearMap();
-  for(EntitySpawner* s: _entitySpawners)
-    delete s;
   _entitySpawners.clear();
   clearBestAnimals();
 }
@@ -244,28 +238,18 @@ void Map::clearMap(){
   _mapSetUp = false;
   _generationDone = false;
   _map.clear();
-  for(Carnivore* e: _carnivores)
-    delete e;
   _carnivores.clear();
-  for(Herbivore* e: _herbivores)
-    delete e;
   _herbivores.clear();
-  for(Plant* e: _plants)
-    delete e;
   _plants.clear();
 }
 
 void Map::clearBestAnimals(){
-  for(Carnivore* e: _bestCarnivores)
-    delete e;
   _bestCarnivores.clear();
-  for(Herbivore* e: _bestHerbivores)
-    delete e;
   _bestHerbivores.clear();
 }
 
-uint8_t* Map::inputFromArea(int posX, int posY){
-  uint8_t* input = new uint8_t[INPUT_SIZE];
+shared_ptr<uint8_t[]> Map::inputFromArea(int posX, int posY){
+  shared_ptr<uint8_t[]> input = make_shared<uint8_t[]>(INPUT_SIZE);
   int inputPos = 0;
   posX -= SENSOR_RADIUS_SQUARES;
   if(posX < 0)
@@ -295,8 +279,8 @@ uint8_t* Map::inputFromArea(int posX, int posY){
   return input;
 }
 
-void Map::inputFromSquare(int posX, int posY, uint8_t* input, int inputPos){
-  if(_map[posX][posY] == nullptr){
+void Map::inputFromSquare(int posX, int posY, shared_ptr<uint8_t[]> input, int inputPos){
+  if(!_map[posX][posY]){
     input[inputPos] = 255;
     input[inputPos+1] = 0;
     input[inputPos+2] = 0;
@@ -320,23 +304,23 @@ void Map::inputFromSquare(int posX, int posY, uint8_t* input, int inputPos){
 }
 
 void Map::decideAcitons(){
-  for(Carnivore* c: _carnivores)
+  for(shared_ptr<Carnivore> c: _carnivores)
     c->decideAction(inputFromArea(c->posX(), c->posY()));
-  for(Herbivore* h: _herbivores)
+  for(shared_ptr<Herbivore> h: _herbivores)
     h->decideAction(inputFromArea(h->posX(), h->posY()));
 }
 
 void Map::performActions(){
-  for(Carnivore* c: _carnivores)
+  for(shared_ptr<Carnivore> c: _carnivores)
     if(c->alive())
-      performAction((Animal*)c);
-  for(Herbivore* h: _herbivores){
+      performAction(c);
+  for(shared_ptr<Herbivore> h: _herbivores){
     if(h->alive())
-      performAction((Animal*)h);
+      performAction(h);
   }
 }
 
-void Map::performAction(Animal* animal){
+void Map::performAction(shared_ptr<Animal> animal){
   AnimalAction action = animal->action();
   switch(action){
     case AnimalAction::EAT:
@@ -356,35 +340,27 @@ void Map::performAction(Animal* animal){
       cout << "Error: Invalid action " << (int)action << endl;
       break;
   }
-  if(!animal->alive())
+  if(!animal->alive()){
     kill(animal);
+  }
 }
 
 void Map::removeDeadEntities(){
-  for(int i=0; i<(int)_plants.size(); i++){
-    if(!_plants[i]->alive()){
-      delete _plants[i];
+  for(int i=0; i<(int)_plants.size(); i++)
+    if(!_plants[i]->alive())
       _plants.erase(_plants.begin()+i);
-    }
-  }
-  for(int i=0; i<(int)_herbivores.size(); i++){
-    if(!_herbivores[i]->alive()){
-      delete _herbivores[i];
+  for(int i=0; i<(int)_herbivores.size(); i++)
+    if(!_herbivores[i]->alive())
       _herbivores.erase(_herbivores.begin()+i);
-    }
-  }
-  for(int i=0; i<(int)_carnivores.size(); i++){
-    if(!_carnivores[i]->alive()){
-      delete _carnivores[i];
+  for(int i=0; i<(int)_carnivores.size(); i++)
+    if(!_carnivores[i]->alive())
       _carnivores.erase(_carnivores.begin()+i);
-    }
-  }
 }
 
-void Map::eat(Animal* animal){
+void Map::eat(shared_ptr<Animal> animal){
   EntityType entityType = animal->entityType();
   EntityType preyType;
-  Animal* prey;
+  shared_ptr<Entity> prey;
   int eatDist = 0;
   if(entityType == EntityType::CARNIVORE){
     preyType = EntityType::HERBIVORE;
@@ -394,25 +370,22 @@ void Map::eat(Animal* animal){
     preyType = EntityType::PLANT;
     eatDist = EAT_DIST_HERBI;
   }
-  prey = (Animal*)(findEntity(animal->posX(), animal->posY(), eatDist, preyType));
-  if(prey == nullptr)
+  prey = findEntity(animal->posX(), animal->posY(), eatDist, preyType);
+  if(!prey)
     return;
   kill(prey);
-  if(DEBUG)cout << "Eaten" << endl;
   if(entityType == EntityType::CARNIVORE)
     animal->addEnergy(ENERGY_GAIN_EAT_HERBI);
   else if(entityType == EntityType::HERBIVORE)
     animal->addEnergy(ENERGY_GAIN_EAT_PLANT);
 }
 
-void Map::kill(Entity* entity){
-  if(DEBUG)cout << "kill" << endl;
-  _map[entity->posX()][entity->posY()] = nullptr;
+void Map::kill(shared_ptr<Entity> entity){
+  _map[entity->posX()][entity->posY()].reset();
   entity->kill();
-  if(DEBUG)cout << "kill done" << endl;
 }
 
-void Map::animalMove(Animal* animal, AnimalAction moveAction){
+void Map::animalMove(shared_ptr<Animal> animal, AnimalAction moveAction){
   int oldPosX = animal->posX();
   int oldPosY = animal->posY();
   int newPosX, newPosY;
@@ -445,9 +418,9 @@ void Map::animalMove(Animal* animal, AnimalAction moveAction){
       cout << "Error: non move action sent to move function" << endl;
       break;
   }
-  if(_map[newPosX][newPosY] == nullptr){
+  if(!_map[newPosX][newPosY]){
     _map[newPosX][newPosY] = animal;
-    _map[oldPosX][oldPosY] = nullptr;
+    _map[oldPosX][oldPosY].reset();
     animal->posY(newPosY);
     animal->posX(newPosX);
     animal->removeEnergy(ENERGY_COST_MOVE);
@@ -457,24 +430,18 @@ void Map::animalMove(Animal* animal, AnimalAction moveAction){
 }
 
 void Map::saveBestCarnivores(){
-  if(DEBUG)cout << "saveBestCarnivores " << _carnivores.size() << " " << _bestCarnivores.size() << endl;
-  for(Carnivore* c: _bestCarnivores)
-    delete c;
   _bestCarnivores.clear();
-  for(Carnivore* c: _carnivores)
-    _bestCarnivores.push_back(new Carnivore(*c));
+  for(shared_ptr<Carnivore> c: _carnivores)
+    _bestCarnivores.push_back(make_shared<Carnivore>(*c));
 }
 
 void Map::saveBestHerbivores(){
-  if(DEBUG)cout << "saveBestHerbivores" << endl;
-  for(Herbivore* h: _bestHerbivores)
-    delete h;
   _bestHerbivores.clear();
-  for(Herbivore* h: _herbivores)
-    _bestHerbivores.push_back(new Herbivore(*h));
+  for(shared_ptr<Herbivore> h: _herbivores)
+    _bestHerbivores.push_back(make_shared<Herbivore>(*h));
 }
 
-Entity* Map::findEntity(int posX, int posY, int radius, EntityType entityType){
+shared_ptr<Entity> Map::findEntity(int posX, int posY, int radius, EntityType entityType){
   int sideLen = 2; // Side len is actually 3, but the corners is shared between two sides, so we just look at 2 squares per side
   for(int r = 0; r < radius; r++){
     posX++;
@@ -484,28 +451,28 @@ Entity* Map::findEntity(int posX, int posY, int radius, EntityType entityType){
     if(posY < 0)
       posY = _sizeY - 1;
     for(int dy = 0; dy < sideLen; dy++){
-      if(_map[posX][posY] != nullptr && _map[posX][posY]->entityType() == entityType)
+      if(_map[posX][posY] && _map[posX][posY]->entityType() == entityType)
         return _map[posX][posY];
       posY++;
       if(posY == _sizeY)
         posY = 0;
     }
     for(int dx = 0; dx < sideLen; dx++){
-      if(_map[posX][posY] != nullptr && _map[posX][posY]->entityType() == entityType)
+      if(_map[posX][posY] && _map[posX][posY]->entityType() == entityType)
         return _map[posX][posY];
       posX--;
       if(posX < 0)
         posX = _sizeX - 1;
     }
     for(int dy = 0; dy < sideLen; dy++){
-      if(_map[posX][posY] != nullptr && _map[posX][posY]->entityType() == entityType)
+      if(_map[posX][posY] && _map[posX][posY]->entityType() == entityType)
         return _map[posX][posY];
       posY--;
       if(posY < 0)
         posY = _sizeY - 1;
     }
     for(int dx = 0; dx < sideLen; dx++){
-      if(_map[posX][posY] != nullptr && _map[posX][posY]->entityType() == entityType)
+      if(_map[posX][posY] && _map[posX][posY]->entityType() == entityType)
         return _map[posX][posY];
       posX++;
       if(posX == _sizeX)
@@ -513,7 +480,18 @@ Entity* Map::findEntity(int posX, int posY, int radius, EntityType entityType){
     }
     sideLen += 2;
   }
-  return nullptr;
+  switch(entityType){
+    case EntityType::CARNIVORE:{
+      return shared_ptr<Carnivore>();
+      break;}
+    case EntityType::HERBIVORE:{
+      return shared_ptr<Herbivore>();
+      break;}
+    case EntityType::PLANT:{
+      return shared_ptr<Plant>();
+      break;}
+  }
+  return shared_ptr<Entity>();
 }
 
 void Map::output(string tab, OutputLevel level){
@@ -527,17 +505,17 @@ void Map::output(string tab, OutputLevel level){
   }
 }
 
-Entity* Map::getSelectedEntity(){
+shared_ptr<Entity> Map::getSelectedEntity(){
+  shared_ptr<Entity> ret;
   if(_carnivores.size() + _herbivores.size() + _plants.size() + _bestCarnivores.size() + _bestHerbivores.size() == 0)
-    return nullptr;
+    return ret;
   bool shiftTypeDown = false;
   if(selectedEntityType < 0){
     selectedEntityType = SelectableEntityType::SEL_COUNT - 1;
     shiftTypeDown = true;
   }
 
-  Entity* ret = nullptr;
-  while(ret == nullptr){
+  while(!ret){
     switch(selectedEntityType){
       case SelectableEntityType::SEL_CARNIVORE:
         if(_carnivores.size() > 0){
@@ -585,7 +563,7 @@ Entity* Map::getSelectedEntity(){
         }
         break;
     }
-    if(ret == nullptr){
+    if(!ret){
       if(shiftTypeDown)
         selectedEntityType--;
       else

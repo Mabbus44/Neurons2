@@ -21,11 +21,11 @@ void SDLWindow::open(int x, int y, int windowHeight, int windowWidth){
   this->_windowWidth = windowWidth;
 	_open = true;
   _window = SDL_CreateWindow( "SDL Graphics", x, y, windowWidth, windowHeight, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
-  if( _window == NULL )
+  if(!_window)
     cout << "Window could not be created! SDL_Error: " << SDL_GetError() << endl;
   windowId = SDL_GetWindowID(_window);
   _renderer = SDL_CreateRenderer(_window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-  if (_renderer == NULL)
+  if (!_renderer)
     cout << "Unable to create renderer: " << SDL_GetError() << endl;
   SDL_RenderSetLogicalSize(_renderer, windowWidth, windowHeight);
 }
@@ -46,10 +46,10 @@ void SDLWindow::close(){
 void NeuronsWindow::open(int x, int y, int windowHeight, int windowWidth){
   SDLWindow::open(x, y, windowHeight, windowWidth);
   _font = TTF_OpenFont( "fonts/OpenSans-Regular.ttf", 20 );
-  if( _font == NULL )
+  if(!_font)
     cout << "Warning: Failed to load lazy font! SDL_ttf Error: " << TTF_GetError() << endl;
   _smallFont = TTF_OpenFont( "fonts/OpenSans-Regular.ttf", 15 );
-  if( _smallFont == NULL )
+  if(_smallFont)
     cout << "Warning: Failed to load small lazy font! SDL_ttf Error: " << TTF_GetError() << endl;
 }
 
@@ -78,7 +78,7 @@ void NeuronsWindow::drawLine(int x1, int y1, int x2, int y2){
   SDL_RenderDrawLine(_renderer, x1, y1, x2, y2);
 }
 
-void NeuronsWindow::drawFactorMap(uint8_t* factors, int x, int y, int animalAction, int inputType){
+void NeuronsWindow::drawFactorMap(shared_ptr<uint8_t[]> factors, int x, int y, int animalAction, int inputType){
   int factorId = animalAction * INPUT_SIZE + inputType;
   for(int dy=0; dy < SENSOR_RADIUS_SQUARES * 2 + 1; dy++){
     for(int dx=0; dx < SENSOR_RADIUS_SQUARES * 2 + 1; dx++){
@@ -103,12 +103,12 @@ void NeuronsWindow::drawText(int x, int y, string text, SDL_Color c, int fontSiz
     textSurface=TTF_RenderText_Solid( _font, text.c_str(),  c);
   else
     textSurface=TTF_RenderText_Solid( _smallFont, text.c_str(),  c);
-  if( textSurface == NULL ){
+  if(!textSurface){
     cout << "Unable to render text surface! SDL_ttf Error: " << TTF_GetError() << endl;
     return;
   }
   SDL_Texture* mTexture = SDL_CreateTextureFromSurface( _renderer, textSurface );
-  if( mTexture == NULL ){
+  if(!mTexture){
     cout <<"Unable to create texture from rendered text! SDL Error: " << SDL_GetError() << endl;
     return;
   }
@@ -124,7 +124,7 @@ void NeuronsWindow::prepareRender(){
   SDL_SetRenderDrawColor(_renderer, 0x00, 0x00, 0x00, 0xFF );
   SDL_RenderClear(_renderer);
   // Legend
-  if(mapRef == nullptr)
+  if(!mapRef)
     drawText(10,10, "No map selected", {0xFF, 0x00, 0x00}, 20);
   else{
     int x = 10;
@@ -161,8 +161,8 @@ void NeuronsWindow::prepareRender(){
     //Entity stats
     x = 170;
     y = 10;
-    Entity* entity = mapRef->getSelectedEntity();
-    if(entity == nullptr)
+    shared_ptr<Entity> entity = mapRef->getSelectedEntity();
+    if(!entity)
       return;
     bool isAnimal = true;
     switch(mapRef->selectedEntityType){
@@ -193,7 +193,7 @@ void NeuronsWindow::prepareRender(){
     else
       drawText(x+66,y+53, "False", {0xFF, 0xFF, 0xFF},15);
     if(isAnimal){
-      Animal* animal = (Animal*)entity;
+      shared_ptr<Animal> animal = dynamic_pointer_cast<Animal>(entity);
       drawText(x,y+69, "Action:", {0xFF, 0xFF, 0xFF},15);
       switch(animal->action()){
         case AnimalAction::NOTHING:
@@ -254,7 +254,7 @@ void MapWindow::open(int x, int y, int windowHeight, int windowWidth){
 
 void MapWindow::close(){
   if(_open){
-    if(mapRef != nullptr)
+    if(mapRef)
       mapRef->pause = false;
     SDLWindow::close();
   }
@@ -265,7 +265,7 @@ void MapWindow::resizeWindow(int windowHeight, int windowWidth){
 }
 
 void MapWindow::prepareRender(){
-  if(mapRef == nullptr){
+  if(!mapRef){
     cout << "No mapref" << endl;
     return;
   }
@@ -275,7 +275,7 @@ void MapWindow::prepareRender(){
   SDL_SetRenderDrawColor( _renderer, 0x00, 0x00, 0x00, 0xFF );
   SDL_Rect rect = {0,0,mapRef->sizeX()*zoom+2,mapRef->sizeY()*zoom+2};
   SDL_RenderDrawRect( _renderer, &rect);
-  mapRef->draw(this);
+  mapRef->draw(*this);
 }
 
 void MapWindow::render(){

@@ -2,23 +2,19 @@
 
 Entity::Entity()
 {
-  if(DEBUG)cout << "Entity(): " << this << endl;
   //ctor
 }
 
 Entity::~Entity()
 {
-  if(DEBUG)cout << "~Entity(): " << this << endl;
   //dtor
 }
 
-Animal::Animal(int x, int y, Animal* rawModel) : Entity(x, y){
-  if(DEBUG)cout << "Animal(int x, int y, Animal* rawModel): " << this << endl;
+Animal::Animal(int x, int y, shared_ptr<Animal> rawModel) : Entity(x, y){
   init(rawModel);
-
 }
 
-void Animal::decideAction(uint8_t* input){
+void Animal::decideAction(shared_ptr<uint8_t[]> input){
   // As long as inputSize < 2^16 (65536) we wont get overflow if input and factor are 8 bit, and result 32 bit.
   int factorId = 0;
   int32_t highestActionWeight = -2147483648;
@@ -49,10 +45,9 @@ bool Animal::removeEnergy(int lostEnergy){
   return _alive;
 }
 
-void Animal::init(Animal* rawModel){
-  _factors = new uint8_t[FACTOR_SIZE];
-  if(DEBUG)cout << "new [] _factors: " << (int*)_factors << endl;
-  if(rawModel == nullptr){
+void Animal::init(shared_ptr<Animal> rawModel){
+  _factors = make_shared<uint8_t[]>(FACTOR_SIZE);
+  if(!rawModel){
     for(int i=0; i<FACTOR_SIZE; i++)
       _factors[i] = rand() % 256;
   }else{
@@ -68,19 +63,15 @@ void Animal::init(Animal* rawModel){
 }
 
 Animal::Animal(const Animal &other) : Entity(other){
-  if(DEBUG)cout << "Animal(const Animal &other): " << this << endl;
-  _factors = new uint8_t[FACTOR_SIZE];
-  if(DEBUG)cout << "new [] _factors: " << (int*)_factors << endl;
+  _factors = make_shared<uint8_t[]>(FACTOR_SIZE);
   for(int i=0; i<FACTOR_SIZE; i++)
     _factors[i] = other._factors[i];
 }
 
-Carnivore::Carnivore(int x, int y, Carnivore* rawModel) : Animal(x, y, rawModel){
-  if(DEBUG)cout << "Carnivore(int x, int y, Carnivore* rawModel): " << this << endl;
+Carnivore::Carnivore(int x, int y, shared_ptr<Carnivore> rawModel) : Animal(x, y, rawModel){
   _entityType = EntityType::CARNIVORE;
 }
 
-Herbivore::Herbivore(int x, int y, Herbivore* rawModel) : Animal(x, y, rawModel){
-  if(DEBUG)cout << "Herbivore(int x, int y, Herbivore* rawModel): " << this << endl;
+Herbivore::Herbivore(int x, int y, shared_ptr<Herbivore> rawModel) : Animal(x, y, rawModel){
   _entityType = EntityType::HERBIVORE;
 }

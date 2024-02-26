@@ -7,6 +7,7 @@
 #include <vector>
 #include "Constants.h"
 #include "Entities.h"
+#include <memory>
 
 class Map;
 
@@ -27,8 +28,8 @@ class SDLWindow
     bool keyFocus = false;
     int xOffset=0, yOffset=0;
   protected:
-    SDL_Window* _window = NULL;
-    SDL_Renderer* _renderer = NULL;
+    SDL_Window* _window = nullptr;
+    SDL_Renderer* _renderer = nullptr;
     bool _open = false;
     int _windowHeight, _windowWidth;
 };
@@ -47,11 +48,11 @@ class NeuronsWindow: public SDLWindow{
     void drawText(int x, int y, string text, SDL_Color c, int fontSize=12);
     void drawRect(int x, int y, int w, int h);
     void drawLine(int x1, int y1, int x2, int y2);
-    void drawFactorMap(uint8_t* factors, int x, int y, int animalAction, int inputType);
-    Map* mapRef = nullptr;
+    void drawFactorMap(shared_ptr<uint8_t[]> factors, int x, int y, int animalAction, int inputType);
+    shared_ptr<Map> mapRef;
   protected:
-    TTF_Font* _font = NULL;
-    TTF_Font* _smallFont = NULL;
+    TTF_Font* _font = nullptr;
+    TTF_Font* _smallFont = nullptr;
 };
 
 class MapWindow: public SDLWindow{
@@ -64,7 +65,7 @@ class MapWindow: public SDLWindow{
     virtual void render();
     virtual void close();
     void drawPixel(int x, int y, int r, int g, int b, bool selected=false);
-    Map* mapRef = nullptr;
+    shared_ptr<Map> mapRef;
   protected:
 };
 #endif // SDLWINDOW_H
