@@ -12,7 +12,6 @@ Hub::~Hub()
 
 void Hub::run(){
   createMap({"mapSettings.json"});
-  initMap({});
   auto _consoleRet = async(&ConsoleHandler::run, &_console);
   while(true){
     parseConsoleInstructions();
@@ -28,9 +27,6 @@ void Hub::parseConsoleInstructions(){
     switch(_console.instructions[0].inst){
       case CREATE_MAP:
         createMap(_console.instructions[0].strArgs);
-        break;
-      case INIT_MAP:
-        initMap(_console.instructions[0].args);
         break;
       case DELETE_MAP:
         deleteMap(_console.instructions[0].args);
@@ -204,20 +200,6 @@ void Hub::createMap(vector<string> args){
   }else{
     cout << "Error: Could not create map" << endl;
   }
-}
-
-void Hub::initMap(vector<int> args){
-  shared_ptr<Map> m;
-  int i=-1;
-  if(args.size()>0)
-    i=args[0];
-  if(!(m=map(i)))
-    return;
-  if(i==-1)
-    i=_maps.size()-1;
-  cout << "Initializing map " << i << "..." << endl;
-  if(m->resetMap())
-    cout << "Map " << i << " initialized" << endl;
 }
 
 void Hub::deleteMap(vector<int> args){

@@ -26,7 +26,6 @@ void ConsoleHandler::run(){
       cout << "\n----------Main menu----------" << endl;
       cout << "create \t\tceates new map" << endl;
       cout << "delete i\tdeletes map with id i" << endl;
-      cout << "init i \t\tinitializes map with id i" << endl;
       cout << "viewmap i \tshows graphics for map i" << endl;
       cout << "runstep i j \truns map with id i for j simulation steps" << endl;
       cout << "rungen i j \truns map with id i for j simulation generations" << endl;
@@ -45,7 +44,6 @@ void ConsoleHandler::run(){
       }
       if(argSplit[0] == "create") instructions.push_back(Instruction(CREATE_MAP, strArgs));
       if(argSplit[0] == "delete") instructions.push_back(Instruction(DELETE_MAP, args));
-      if(argSplit[0] == "init") instructions.push_back(Instruction(INIT_MAP, args));
       if(argSplit[0] == "viewmap") instructions.push_back(Instruction(VIEW_MAP, args));
       if(argSplit[0] == "runstep") instructions.push_back(Instruction(RUN_SIMULATION_STEPS, args));
       if(argSplit[0] == "rungen") instructions.push_back(Instruction(RUN_SIMULATION_GENERATIONS, args));
