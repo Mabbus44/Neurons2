@@ -48,7 +48,7 @@ class NeuronsWindow: public SDLWindow{
     void drawText(int x, int y, string text, SDL_Color c, int fontSize=12);
     void drawRect(int x, int y, int w, int h);
     void drawLine(int x1, int y1, int x2, int y2);
-    void drawFactorMap(shared_ptr<uint8_t[]> factors, int x, int y, int animalAction, int inputType);
+    void drawFactorMap(shared_ptr<uint8_t[]> factors, int x, int y, int animalAction, int inputType, int sensorRadius);
     shared_ptr<Map> mapRef;
   protected:
     TTF_Font* _font = nullptr;

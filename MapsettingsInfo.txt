@@ -1,0 +1,29 @@
+{																										//Any setting can be excluded to use it´s default value
+	"sizeX": 200,																			//Size of map.
+	"sizeY": 200,																			//Size of map.
+	"resetHerbivoreCount": 10,												//When number of herbivores goes under this number (and all other cocnditions for generation are fulfilled) the generation is done.
+	"resetCarnivoreCount": 5,													//When number of carnivores goes under this number (and all other cocnditions for generation are fulfilled) the generation is done.
+	"defaultSpawner":																	//Default settings for entity spawners. Can be overridden for each specific spawner.
+	{
+		"spawnerType": "evenDistribution",							//How entities are spawned in area {"evenDistribution"}.
+		"entityType": "carnivore",											//Type of entity {"carnivore", "herbivore", "plant"}.
+		"entityCount": 10,															//Amount of entities to spawn in the area.
+		"minX": 0,																			//Bounds of the area. May not excede map size.
+		"minY": 0,																			//Bounds of the area. May not excede map size.
+		"maxX": -1,																			//Bounds of the area. May not excede map size. -1 means upper map bound.
+		"maxY": -1																			//Bounds of the area. May not excede map size. -1 means upper map bound.
+		"sensorRadius": 5,															//Distance around entity that it gather inputs.
+		"eatDist": 2,																		//Distance a entity can eat a prey from.
+		"maxMutation": 10,															//Maximum change in factor that an offspring can get relative to parent. Scale is 0-255.
+		"maxEnergy": 5000,															//Max energy of a entity.
+		"startEnergy": 500,															//Starting energy of a entity.
+		"energyCostMove": 20,														//Energy cost for moving.
+		"energyCostEat": 10,														//Energy cost for eating.
+		"energyCostNothing": 5,													//Energy cost for doing nothing.
+		"energyGainEat": 4000														//Energy gain from eating.
+	}
+	"entitySpawners":																	//Spawner objects. Each object specifies spawning of some entities in an area.
+	[{
+		** Same settings as default spawner **
+	}]
+}

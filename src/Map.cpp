@@ -1,64 +1,138 @@
 #include "Map.h"
 
-bool EntitySpawner::loadSettings(Value input){
-  if(input["spawnerType"] == "evenDistribution")
-    _spawnerType = SpawnerType::EVEN_DISTROBUTION;
-  else{
-    cout << "Error: Invalid spawnertype in entitySpawner " << input << endl;
-    return false;
-  }
-  if(input["entityType"] == "carnivore")
-    _entityType = EntityType::CARNIVORE;
-  else if(input["entityType"] == "herbivore")
-    _entityType = EntityType::HERBIVORE;
-  else if(input["entityType"] == "plant")
-    _entityType = EntityType::PLANT;
-  else{
-    cout << "Error: Invalid entityType in entitySpawner " << input << endl;
-    return false;
-  }
-  if(input["entityCount"].isIntegral() && input["minX"].isIntegral() && input["maxX"].isIntegral() && input["minY"].isIntegral() &&
-        input["maxY"].isIntegral()){
-    _entityCount = input["entityCount"].asInt();
-    _minX = input["minX"].asInt();
-    _maxX = input["maxX"].asInt();
-    _minY = input["minY"].asInt();
-    _maxY = input["maxY"].asInt();
-  }else{
-    cout << "Error: Missing required value (entityCount, minX, maxX, minY or maxY) in entitySpawner " << input << endl;
-    return false;
+bool EntitySpawner::loadSettings(Value input, int mapSizeX, int mapSizeY){
+  for(Value::const_iterator itr = input.begin() ; itr != input.end() ; itr++){
+    if(itr.key() == "spawnerType" && (*itr).isString()){
+      if((*itr).asString() == "evenDistribution")
+        _spawnerType = SpawnerType::EVEN_DISTROBUTION;
+      else
+        cout << "Warning: Invalid value {" << *itr << "} for key {" << itr.key() << "} in spawner settings" << endl;
+    }else if(itr.key() == "entityType" && (*itr).isString()){
+      if((*itr).asString() == "carnivore")
+        _entityType = EntityType::CARNIVORE;
+      else if((*itr).asString() == "herbivore")
+        _entityType = EntityType::HERBIVORE;
+      else if((*itr).asString() == "plant")
+        _entityType = EntityType::PLANT;
+      else
+        cout << "Warning: Invalid value {" << *itr << "} for key {" << itr.key() << "} in spawner settings" << endl;
+    }else if(itr.key() == "entityCount" && (*itr).isIntegral()){
+      _entityCount = (*itr).asInt();
+    }else if(itr.key() == "minX" && (*itr).isIntegral()){
+      _minX = (*itr).asInt();
+    }else if(itr.key() == "minY" && (*itr).isIntegral()){
+      _minY = (*itr).asInt();
+    }else if(itr.key() == "maxX" && (*itr).isIntegral()){
+      _maxX = (*itr).asInt();
+      if(_maxX == -1)
+        _maxX = mapSizeX-1;
+    }else if(itr.key() == "maxY" && (*itr).isIntegral()){
+      _maxY = (*itr).asInt();
+      if(_maxY == -1)
+        _maxY = mapSizeY-1;
+    }else if(itr.key() == "sensorRadius" && (*itr).isIntegral()){
+      _sensorRadius = (*itr).asInt();
+    }else if(itr.key() == "maxEnergy" && (*itr).isIntegral()){
+      _maxEnergy = (*itr).asInt();
+    }else if(itr.key() == "startEnergy" && (*itr).isIntegral()){
+      _startEnergy = (*itr).asInt();
+    }else if(itr.key() == "energyCostMove" && (*itr).isIntegral()){
+      _energyCostMove = (*itr).asInt();
+    }else if(itr.key() == "energyCostEat" && (*itr).isIntegral()){
+      _energyCostEat = (*itr).asInt();
+    }else if(itr.key() == "energyCostNothing" && (*itr).isIntegral()){
+      _energyCostNothing = (*itr).asInt();
+    }else if(itr.key() == "energyGainEat" && (*itr).isIntegral()){
+      _energyGainEat = (*itr).asInt();
+    }else if(itr.key() == "eatDist" && (*itr).isIntegral()){
+      _eatDist = (*itr).asInt();
+    }else if(itr.key() == "maxMutation" && (*itr).isIntegral()){
+      _maxMutation = (*itr).asInt();
+    }else{
+      cout << "Warning: Invalid key {" << itr.key() << "} in spawner settings" << endl;
+    }
   }
   return true;
 }
 
-int EntitySpawner::maxX(int mapMax){
-  if(_maxX == -1 || _maxX > mapMax)
-    return mapMax;
-  else
-    return _maxX;
+void EntitySpawner::addCarnivores(vector<shared_ptr<Carnivore>>& entities, vector<shared_ptr<Carnivore>>& rawModels, int& rawModelId, vector<vector<shared_ptr<Entity>>>& map){
+  int posX, posY;
+  for(int eId=0; eId < _entityCount; eId++){
+    int retries = 0;
+    bool spotFree = false;
+    while(!spotFree && retries < 3){
+      posX = _minX + (rand() % sizeX());
+      posY = _minY + (rand() % sizeY());
+      if(!map[posX][posY])
+        spotFree = true;
+      else
+        retries++;
+    }
+    if(spotFree){
+      shared_ptr<Entity> entity;
+      rawModelId++;
+      if(rawModelId >= (int)rawModels.size())
+        rawModelId = 0;
+      shared_ptr<Carnivore> baseEntity;
+      if((int)rawModels.size() > 0)
+        baseEntity = rawModels[rawModelId];
+      entity = make_shared<Carnivore>(posX, posY, baseEntity, _sensorRadius, _startEnergy, _maxEnergy, _energyCostMove, _energyCostEat,
+                                      _energyCostNothing, _energyGainEat, _eatDist, _maxMutation);
+      entities.push_back(dynamic_pointer_cast<Carnivore>(entity));
+      map[posX][posY] = entity;
+    }
+  }
 }
 
-int EntitySpawner::maxY(int mapMax){
-  if(_maxY == -1 || _maxY > mapMax)
-    return mapMax;
-  else
-    return _maxY;
+void EntitySpawner::addHerbivores(vector<shared_ptr<Herbivore>>& entities, vector<shared_ptr<Herbivore>>& rawModels, int& rawModelId, vector<vector<shared_ptr<Entity>>>& map){
+  int posX, posY;
+  for(int eId=0; eId < _entityCount; eId++){
+    int retries = 0;
+    bool spotFree = false;
+    while(!spotFree && retries < 3){
+      posX = _minX + (rand() % sizeX());
+      posY = _minY + (rand() % sizeY());
+      if(!map[posX][posY])
+        spotFree = true;
+      else
+        retries++;
+    }
+    if(spotFree){
+      shared_ptr<Entity> entity;
+      rawModelId++;
+      if(rawModelId >= (int)rawModels.size())
+        rawModelId = 0;
+      shared_ptr<Herbivore> baseEntity;
+      if((int)rawModels.size() > 0)
+        baseEntity = rawModels[rawModelId];
+      entity = make_shared<Herbivore>(posX, posY, baseEntity, _sensorRadius, _startEnergy, _maxEnergy, _energyCostMove, _energyCostEat,
+                                      _energyCostNothing, _energyGainEat, _eatDist, _maxMutation);
+      entities.push_back(dynamic_pointer_cast<Herbivore>(entity));
+      map[posX][posY] = entity;
+    }
+  }
 }
 
-int EntitySpawner::sizeX(int mapMax){
-  if(_maxX == -1 || _maxX > mapMax)
-    return mapMax-_minX+1;
-  else
-    return _maxX-_minX+1;
+void EntitySpawner::addPlants(vector<shared_ptr<Plant>>& entities, vector<vector<shared_ptr<Entity>>>& map){
+  int posX, posY;
+  for(int eId=0; eId < _entityCount; eId++){
+    int retries = 0;
+    bool spotFree = false;
+    while(!spotFree && retries < 3){
+      posX = _minX + (rand() % sizeX());
+      posY = _minY + (rand() % sizeY());
+      if(!map[posX][posY])
+        spotFree = true;
+      else
+        retries++;
+    }
+    if(spotFree){
+      shared_ptr<Entity> entity = make_shared<Plant>(posX, posY);
+      entities.push_back(dynamic_pointer_cast<Plant>(entity));
+      map[posX][posY] = entity;
+    }
+  }
 }
-
-int EntitySpawner::sizeY(int mapMax){
-  if(_maxY == -1 || _maxY > mapMax)
-    return mapMax-_minY+1;
-  else
-    return _maxY-_minY+1;
-}
-
 
 Map::Map()
 {
@@ -92,53 +166,22 @@ bool Map::resetMap(){
       plantCount += e->entityCount();
   }
 
-  _carnivores = vector<shared_ptr<Carnivore>>(carnivoreCount);
-  _herbivores = vector<shared_ptr<Herbivore>>(herbivoreCount);
-  _plants = vector<shared_ptr<Plant>>(plantCount);
+  _carnivores = vector<shared_ptr<Carnivore>>();
+  _carnivores.reserve(carnivoreCount);
+  _herbivores = vector<shared_ptr<Herbivore>>();
+  _herbivores.reserve(herbivoreCount);
+  _plants = vector<shared_ptr<Plant>>();
+  _plants.reserve(plantCount);
 
-  int carnivoreId = 0;
-  int herbivoreId = 0;
-  int plantId = 0;
   int bestCarnivoreId = 0;
   int bestHerbivoreId = 0;
   for(shared_ptr<EntitySpawner> spawner: _entitySpawners){
-    int entityCount = spawner->entityCount();
-    for(int eId=0; eId < entityCount; eId++){
-      int retries = 0;
-      bool entityCreated = false;
-      while(!entityCreated && retries < 3){
-        int posX = spawner->minX() + (rand() % spawner->sizeX(_sizeX-1));
-        int posY = spawner->minY() + (rand() % spawner->sizeY(_sizeY-1));
-        if(!_map[posX][posY]){
-          shared_ptr<Entity> entity;
-          if(spawner->entityType() == EntityType::CARNIVORE){
-            bestCarnivoreId++;
-            if(bestCarnivoreId >= (int)_bestCarnivores.size())
-              bestCarnivoreId = 0;
-            shared_ptr<Carnivore> baseCarnivore;
-            if((int)_bestCarnivores.size() > 0)
-              baseCarnivore = _bestCarnivores[bestCarnivoreId];
-            entity = make_shared<Carnivore>(posX, posY, baseCarnivore);
-            _carnivores[carnivoreId++] = dynamic_pointer_cast<Carnivore>(entity);
-          }else if(spawner->entityType() == EntityType::HERBIVORE){
-            bestHerbivoreId++;
-            if(bestHerbivoreId >= (int)_bestHerbivores.size())
-              bestHerbivoreId = 0;
-            shared_ptr<Herbivore> baseHerbivore;
-            if((int)_bestHerbivores.size() > 0)
-              baseHerbivore = _bestHerbivores[bestHerbivoreId];
-            entity = make_shared<Herbivore>(posX, posY, baseHerbivore);
-            _herbivores[herbivoreId++] = dynamic_pointer_cast<Herbivore>(entity);
-          }else if(spawner->entityType() == EntityType::PLANT){
-            entity = make_shared<Plant>(posX, posY);
-            _plants[plantId++] = dynamic_pointer_cast<Plant>(entity);
-          }
-          _map[posX][posY] = entity;
-          entityCreated = true;
-        }else{
-          retries++;
-        }
-      }
+    if(spawner->entityType() == EntityType::CARNIVORE){
+      spawner->addCarnivores(_carnivores, _bestCarnivores, bestCarnivoreId, _map);
+    }else if(spawner->entityType() == EntityType::HERBIVORE){
+      spawner->addHerbivores(_herbivores, _bestHerbivores, bestHerbivoreId, _map);
+    }else if(spawner->entityType() == EntityType::PLANT){
+      spawner->addPlants(_plants, _map);
     }
   }
   clearBestAnimals();
@@ -163,21 +206,31 @@ bool Map::loadMapSettings(string fileName){
     return _validConfig;
   }
   free();
-  if(fileContents.isMember("entitySpawners") && fileContents["entitySpawners"].isArray()){
-    Value entitySpawnersInput = fileContents["entitySpawners"];
-    for(Value::ArrayIndex spawnerId = 0; spawnerId < entitySpawnersInput.size(); spawnerId++){
-      shared_ptr<EntitySpawner> e = make_shared<EntitySpawner>();
-      if(e->loadSettings(entitySpawnersInput[spawnerId]))
-        _entitySpawners.push_back(e);
+  for(Value::const_iterator itr = fileContents.begin() ; itr != fileContents.end() ; itr++){
+    if(itr.key() == "defaultSpawner" && (*itr).isObject()){
+    }else if(itr.key() == "entitySpawners" && (*itr).isArray()){
+    }else if(itr.key() == "sizeX" && (*itr).isIntegral()){
+      _sizeX = (*itr).asInt();
+    }else if(itr.key() == "sizeY" && (*itr).isIntegral()){
+      _sizeY = (*itr).asInt();
+    }else if(itr.key() == "resetHerbivoreCount" && (*itr).isIntegral()){
+      _resetHerbivoreCount = (*itr).asInt();
+    }else if(itr.key() == "resetCarnivoreCount" && (*itr).isIntegral()){
+      _resetCarnivoreCount = (*itr).asInt();
+    }else{
+      cout << "Warning: Invalid key {" << itr.key() << "} in map settings" << endl;
     }
   }
-  if(fileContents["sizeX"].isIntegral() && fileContents["sizeY"].isIntegral() && fileContents["sizeX"].asInt() > 0 &&
-        fileContents["sizeY"].asInt() > 0){
-    _sizeX = fileContents["sizeX"].asInt();
-    _sizeY = fileContents["sizeY"].asInt();
-  }else{
-    cout << "Error: Missing or invalid required value (sizeX, sizeY) in map settings " << fileContents << endl;
-    return _validConfig;
+  if(fileContents.isMember("defaultSpawner") && fileContents["defaultSpawner"].isObject()){
+    _defaultSpawner = make_shared<EntitySpawner>();
+    _defaultSpawner->loadSettings(fileContents["defaultSpawner"], _sizeX, _sizeY);
+  }
+  if(fileContents.isMember("entitySpawners") && fileContents["entitySpawners"].isArray()){
+    for(Value::ArrayIndex spawnerId = 0; spawnerId < (fileContents["entitySpawners"]).size(); spawnerId++){
+      shared_ptr<EntitySpawner> e = make_shared<EntitySpawner>(*_defaultSpawner);
+      if(e->loadSettings((fileContents["entitySpawners"])[spawnerId], _sizeX, _sizeY))
+        _entitySpawners.push_back(e);
+    }
   }
   _validConfig = true;
   return _validConfig;
@@ -191,11 +244,11 @@ bool Map::tick(){
   decideAcitons();
   performActions();
   removeDeadEntities();
-  if((int)_herbivores.size() > 0 && (int)_herbivores.size() <= RESET_HERBIVORE_COUNT && (int)_bestHerbivores.size() == 0)
+  if((int)_herbivores.size() > 0 && (int)_herbivores.size() <= _resetHerbivoreCount && (int)_bestHerbivores.size() == 0)
     saveBestHerbivores();
-  if((int)_carnivores.size() > 0 && (int)_carnivores.size() <= RESET_CARNIVORE_COUNT && (int)_bestCarnivores.size() == 0)
+  if((int)_carnivores.size() > 0 && (int)_carnivores.size() <= _resetCarnivoreCount && (int)_bestCarnivores.size() == 0)
     saveBestCarnivores();
-  if(!_generationDone && (int)_herbivores.size() <= RESET_HERBIVORE_COUNT && (int)_carnivores.size() <= RESET_CARNIVORE_COUNT){
+  if(!_generationDone && (int)_herbivores.size() <= _resetHerbivoreCount && (int)_carnivores.size() <= _resetCarnivoreCount){
     _generationDone = true;
     _generationCount++;
   }
@@ -249,18 +302,19 @@ void Map::clearBestAnimals(){
   _bestHerbivores.clear();
 }
 
-shared_ptr<uint8_t[]> Map::inputFromArea(int posX, int posY){
-  shared_ptr<uint8_t[]> input = make_shared<uint8_t[]>(INPUT_SIZE);
+shared_ptr<uint8_t[]> Map::inputFromArea(int posX, int posY, int sensorRadius){
+  int inputSize = INPUTS_PER_SQUARE * (sensorRadius * 2 + 1) * (sensorRadius * 2 + 1);
+  shared_ptr<uint8_t[]> input = make_shared<uint8_t[]>(inputSize);
   int inputPos = 0;
-  posX -= SENSOR_RADIUS_SQUARES;
+  posX -= sensorRadius;
   if(posX < 0)
     posX += _sizeX;
-  posY -= SENSOR_RADIUS_SQUARES;
+  posY -= sensorRadius;
   if(posY < 0)
     posY += _sizeY;
   const int startX = posX;
   int row = 0;
-  int rowAndColCount = SENSOR_RADIUS_SQUARES * 2 + 1;
+  int rowAndColCount = sensorRadius * 2 + 1;
   while(row < rowAndColCount){
     int col = 0;
     posX = startX;
@@ -306,43 +360,18 @@ void Map::inputFromSquare(int posX, int posY, shared_ptr<uint8_t[]> input, int i
 
 void Map::decideAcitons(){
   for(shared_ptr<Carnivore> c: _carnivores)
-    c->decideAction(inputFromArea(c->posX(), c->posY()));
+    c->decideAction(inputFromArea(c->posX(), c->posY(), c->sensorRadius()));
   for(shared_ptr<Herbivore> h: _herbivores)
-    h->decideAction(inputFromArea(h->posX(), h->posY()));
+    h->decideAction(inputFromArea(h->posX(), h->posY(), h->sensorRadius()));
 }
 
 void Map::performActions(){
   for(shared_ptr<Carnivore> c: _carnivores)
     if(c->alive())
-      performAction(c);
+      c->performAction(_map);
   for(shared_ptr<Herbivore> h: _herbivores){
     if(h->alive())
-      performAction(h);
-  }
-}
-
-void Map::performAction(shared_ptr<Animal> animal){
-  AnimalAction action = animal->action();
-  switch(action){
-    case AnimalAction::EAT:
-      eat(animal);
-      animal->removeEnergy(ENERGY_COST_EAT);
-      break;
-    case AnimalAction::MOVE_DOWN:
-    case AnimalAction::MOVE_LEFT:
-    case AnimalAction::MOVE_RIGHT:
-    case AnimalAction::MOVE_UPP:
-      animalMove(animal, action);
-      break;
-    case AnimalAction::NOTHING:
-      animal->removeEnergy(ENERGY_COST_NOTHING);
-      break;
-    default:
-      cout << "Error: Invalid action " << (int)action << endl;
-      break;
-  }
-  if(!animal->alive()){
-    kill(animal);
+      h->performAction(_map);
   }
 }
 
@@ -358,78 +387,6 @@ void Map::removeDeadEntities(){
       _carnivores.erase(_carnivores.begin()+i);
 }
 
-void Map::eat(shared_ptr<Animal> animal){
-  EntityType entityType = animal->entityType();
-  EntityType preyType;
-  shared_ptr<Entity> prey;
-  int eatDist = 0;
-  if(entityType == EntityType::CARNIVORE){
-    preyType = EntityType::HERBIVORE;
-    eatDist = EAT_DIST_CARNI;
-  }
-  else if(entityType == EntityType::HERBIVORE){
-    preyType = EntityType::PLANT;
-    eatDist = EAT_DIST_HERBI;
-  }
-  prey = findEntity(animal->posX(), animal->posY(), eatDist, preyType);
-  if(!prey)
-    return;
-  kill(prey);
-  if(entityType == EntityType::CARNIVORE)
-    animal->addEnergy(ENERGY_GAIN_EAT_HERBI);
-  else if(entityType == EntityType::HERBIVORE)
-    animal->addEnergy(ENERGY_GAIN_EAT_PLANT);
-}
-
-void Map::kill(shared_ptr<Entity> entity){
-  _map[entity->posX()][entity->posY()].reset();
-  entity->kill();
-}
-
-void Map::animalMove(shared_ptr<Animal> animal, AnimalAction moveAction){
-  int oldPosX = animal->posX();
-  int oldPosY = animal->posY();
-  int newPosX, newPosY;
-  switch(moveAction){
-    case AnimalAction::MOVE_DOWN:
-      newPosX = oldPosX;
-      newPosY = oldPosY + 1;
-      if(newPosY == _sizeY)
-        newPosY = 0;
-      break;
-    case AnimalAction::MOVE_LEFT:
-      newPosX = oldPosX - 1;
-      newPosY = oldPosY;
-      if(newPosX < 0)
-        newPosX = _sizeX-1;
-      break;
-    case AnimalAction::MOVE_RIGHT:
-      newPosX = oldPosX + 1;
-      newPosY = oldPosY;
-      if(newPosX == _sizeX)
-        newPosX = 0;
-      break;
-    case AnimalAction::MOVE_UPP:
-      newPosX = oldPosX;
-      newPosY = oldPosY - 1;
-      if(newPosY < 0)
-        newPosY = _sizeY-1;
-      break;
-    default:
-      cout << "Error: non move action sent to move function" << endl;
-      break;
-  }
-  if(!_map[newPosX][newPosY]){
-    _map[newPosX][newPosY] = animal;
-    _map[oldPosX][oldPosY].reset();
-    animal->posY(newPosY);
-    animal->posX(newPosX);
-    animal->removeEnergy(ENERGY_COST_MOVE);
-    return;
-  }
-  animal->removeEnergy(ENERGY_COST_NOTHING);
-}
-
 void Map::saveBestCarnivores(){
   _bestCarnivores.clear();
   for(shared_ptr<Carnivore> c: _carnivores)
@@ -440,59 +397,6 @@ void Map::saveBestHerbivores(){
   _bestHerbivores.clear();
   for(shared_ptr<Herbivore> h: _herbivores)
     _bestHerbivores.push_back(make_shared<Herbivore>(*h));
-}
-
-shared_ptr<Entity> Map::findEntity(int posX, int posY, int radius, EntityType entityType){
-  int sideLen = 2; // Side len is actually 3, but the corners is shared between two sides, so we just look at 2 squares per side
-  for(int r = 0; r < radius; r++){
-    posX++;
-    if(posX == _sizeX)
-      posX = 0;
-    posY--;
-    if(posY < 0)
-      posY = _sizeY - 1;
-    for(int dy = 0; dy < sideLen; dy++){
-      if(_map[posX][posY] && _map[posX][posY]->entityType() == entityType)
-        return _map[posX][posY];
-      posY++;
-      if(posY == _sizeY)
-        posY = 0;
-    }
-    for(int dx = 0; dx < sideLen; dx++){
-      if(_map[posX][posY] && _map[posX][posY]->entityType() == entityType)
-        return _map[posX][posY];
-      posX--;
-      if(posX < 0)
-        posX = _sizeX - 1;
-    }
-    for(int dy = 0; dy < sideLen; dy++){
-      if(_map[posX][posY] && _map[posX][posY]->entityType() == entityType)
-        return _map[posX][posY];
-      posY--;
-      if(posY < 0)
-        posY = _sizeY - 1;
-    }
-    for(int dx = 0; dx < sideLen; dx++){
-      if(_map[posX][posY] && _map[posX][posY]->entityType() == entityType)
-        return _map[posX][posY];
-      posX++;
-      if(posX == _sizeX)
-        posX = 0;
-    }
-    sideLen += 2;
-  }
-  switch(entityType){
-    case EntityType::CARNIVORE:{
-      return shared_ptr<Carnivore>();
-      break;}
-    case EntityType::HERBIVORE:{
-      return shared_ptr<Herbivore>();
-      break;}
-    case EntityType::PLANT:{
-      return shared_ptr<Plant>();
-      break;}
-  }
-  return shared_ptr<Entity>();
 }
 
 void Map::output(string tab, OutputLevel level){

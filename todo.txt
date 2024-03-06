@@ -1,16 +1,19 @@
 TODO
-* Move constants to map settings
 * Save mapstate
 * Load mapstate
+* Auto load/save on quit/open
 * Implement copy map
 * Put random element in action choise for entity
-* Support arbitrary input size
 * Add name to maps and option to edit names
 
 Bugs
-* Font fails to load
-* Viewmap does not replace already open windows
 
-Done
+Done todo
 * Remove "init i"
 * Supply filename to "create map"
+* Move constants to map settings
+* Support arbitrary input size
+
+Done bugs
+* Font fails to load
+* Viewmap does not replace already open windows

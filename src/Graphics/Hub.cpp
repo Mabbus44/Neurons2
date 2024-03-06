@@ -222,14 +222,12 @@ void Hub::viewMap(vector<int> args){
     i=args[0];
   if(!(m=map(i)))
     return;
-  if(!_mapWindow.isOpen()){
-    _mapWindow.mapRef = m;
+  _mapWindow.mapRef = m;
+  if(!_mapWindow.isOpen())
     _mapWindow.open(0, 35);
-  }
-  if(!_neuronWindow.isOpen()){
-    _neuronWindow.mapRef = m;
+  _neuronWindow.mapRef = m;
+  if(!_neuronWindow.isOpen())
     _neuronWindow.open(WINDOW_WIDTH, 35);
-  }
   cout << "window for map " << i << " opened" << endl;
 }
 

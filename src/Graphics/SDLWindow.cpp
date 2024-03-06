@@ -49,7 +49,7 @@ void NeuronsWindow::open(int x, int y, int windowHeight, int windowWidth){
   if(!_font)
     cout << "Warning: Failed to load lazy font! SDL_ttf Error: " << TTF_GetError() << endl;
   _smallFont = TTF_OpenFont( "fonts/OpenSans-Regular.ttf", 15 );
-  if(_smallFont)
+  if(!_smallFont)
     cout << "Warning: Failed to load small lazy font! SDL_ttf Error: " << TTF_GetError() << endl;
 }
 
@@ -78,10 +78,11 @@ void NeuronsWindow::drawLine(int x1, int y1, int x2, int y2){
   SDL_RenderDrawLine(_renderer, x1, y1, x2, y2);
 }
 
-void NeuronsWindow::drawFactorMap(shared_ptr<uint8_t[]> factors, int x, int y, int animalAction, int inputType){
-  int factorId = animalAction * INPUT_SIZE + inputType;
-  for(int dy=0; dy < SENSOR_RADIUS_SQUARES * 2 + 1; dy++){
-    for(int dx=0; dx < SENSOR_RADIUS_SQUARES * 2 + 1; dx++){
+void NeuronsWindow::drawFactorMap(shared_ptr<uint8_t[]> factors, int x, int y, int animalAction, int inputType, int sensorRadius){
+  int inputSize = INPUTS_PER_SQUARE * (sensorRadius * 2 + 1) * (sensorRadius * 2 + 1);
+  int factorId = animalAction * inputSize + inputType;
+  for(int dy=0; dy < sensorRadius * 2 + 1; dy++){
+    for(int dx=0; dx < sensorRadius * 2 + 1; dx++){
       int r = factors[factorId];
       int b = 255-r;
       r -= 128;
@@ -231,7 +232,7 @@ void NeuronsWindow::prepareRender(){
       drawText(x,y+453, "Eat", {0xFF, 0xFF, 0xFF},15);
       for(int animalAction=0; animalAction < AnimalAction::COUNT; animalAction++){
         for(int inputType=0; inputType < INPUTS_PER_SQUARE; inputType++){
-          drawFactorMap(animal->factors(), x+66 + inputType * 64, y+128 + animalAction*64, animalAction, inputType);
+          drawFactorMap(animal->factors(), x+66 + inputType * 64, y+128 + animalAction*64, animalAction, inputType, animal->sensorRadius());
         }
       }
     }

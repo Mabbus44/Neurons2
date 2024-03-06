@@ -16,23 +16,38 @@ class EntitySpawner
   public:
     EntitySpawner(){}
     virtual ~EntitySpawner(){free();}
-    bool loadSettings(Value input);
+    bool loadSettings(Value input, int mapSizeX, int mapSizeY);
     void free(){}
+    void addCarnivores(vector<shared_ptr<Carnivore>>& entities, vector<shared_ptr<Carnivore>>& rawModels, int& rawModelId, vector<vector<shared_ptr<Entity>>>& map);
+    void addHerbivores(vector<shared_ptr<Herbivore>>& entities, vector<shared_ptr<Herbivore>>& rawModels, int& rawModelId, vector<vector<shared_ptr<Entity>>>& map);
+    void addPlants(vector<shared_ptr<Plant>>& entities, vector<vector<shared_ptr<Entity>>>& map);
     int entityCount() {return _entityCount;}
     EntityType entityType() {return _entityType;};
     int minX() {return _minX;}
     int minY() {return _minY;}
-    int maxX(int mapMax);
-    int maxY(int mapMax);
-    int sizeX(int mapMax);
-    int sizeY(int mapMax);
+    int maxX() {return _maxX;}
+    int maxY() {return _maxY;}
+    int sizeX() {return _maxX-_minX+1;}
+    int sizeY() {return _maxY-_minY+1;}
 
   protected:
   private:
-    EntityType _entityType;
-    SpawnerType _spawnerType;
-    int _entityCount;
-    int _minX, _minY, _maxX, _maxY;
+    EntityType _entityType = EntityType::PLANT;
+    SpawnerType _spawnerType = SpawnerType::EVEN_DISTROBUTION;
+    int _entityCount = 10;
+    int _minX = 0;
+    int _minY = 0;
+    int _maxX = -1;
+    int _maxY = -1;
+    int _sensorRadius = 5;
+    int _maxEnergy = 5000;
+    int _startEnergy = 1000;
+    int _energyCostMove = 20;
+    int _energyCostEat = 10;
+    int _energyCostNothing = 5;
+    int _energyGainEat = 4000;
+    int _eatDist = 5;
+    int _maxMutation = 10;
 };
 
 class Map
@@ -71,25 +86,24 @@ class Map
     void free();                //Frees all memory
     void clearMap();            //Removes all entities on map, and the map (keeps best animals)
     void clearBestAnimals();    //Removes best animals
-    shared_ptr<uint8_t[]> inputFromArea(int posX, int posY);
+    shared_ptr<uint8_t[]> inputFromArea(int posX, int posY, int sensorRadius);
     void inputFromSquare(int posX, int posY, shared_ptr<uint8_t[]> input, int inputPos);
     void decideAcitons();
     void performActions();
-    void performAction(shared_ptr<Animal> animal);
     void removeDeadEntities();
-    void eat(shared_ptr<Animal> animal);
-    void kill(shared_ptr<Entity> animal);
-    void animalMove(shared_ptr<Animal> animal, AnimalAction moveAction);
     void saveBestCarnivores();
     void saveBestHerbivores();
-    shared_ptr<Entity> findEntity(int posX, int posY, int radius, EntityType entityType);
+    shared_ptr<EntitySpawner> _defaultSpawner;
     bool _validConfig = false;
     bool _mapSetUp = false;
     bool _generationDone = false;
-    int _sizeX, _sizeY;
+    int _sizeX = 200;
+    int _sizeY = 200;
     int _tickCount;
     int _zoom = DEFAULT_ZOOM;
     int _generationCount = 0;
+    int _resetHerbivoreCount = 10;
+    int _resetCarnivoreCount = 5;
     vector<vector<shared_ptr<Entity>>> _map;
     vector<shared_ptr<Carnivore>> _carnivores;
     vector<shared_ptr<Herbivore>> _herbivores;
