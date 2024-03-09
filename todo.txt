@@ -1,12 +1,13 @@
 TODO
-* Auto load/save on quit/open
 * Implement copy map
 * Put random element in action choise for entity
 * Add name to maps and option to edit names
+* Change what info are shown for maps
 
 Bugs
 
 Done todo
+* Auto load/save on quit/open
 * Save/load mapstate
 * Remove "init i"
 * Supply filename to "create map"

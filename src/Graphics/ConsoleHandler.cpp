@@ -68,6 +68,8 @@ void ConsoleHandler::run(){
     getline(cin, ans2);
     ans="";
   }
+  vector<int> quitArgs = {};
+  instructions.push_back(Instruction(QUIT, quitArgs));
 }
 
 vector<int> ConsoleHandler::argsToInt(string args){

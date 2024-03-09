@@ -9,7 +9,7 @@ enum SpawnerType {EVEN_DISTROBUTION};                           //Distrobution p
 enum EntityType {CARNIVORE, HERBIVORE, PLANT};                  //Types of entities that can exist on a map.
 enum SelectableEntityType {SEL_CARNIVORE, SEL_HERBIVORE, SEL_PLANT, SEL_BEST_CARNIVORE, SEL_BEST_HERBIVORE, SEL_COUNT};   //Selectable entity types in the neurons window.
 enum AnimalAction {NOTHING, MOVE_UPP, MOVE_DOWN, MOVE_LEFT, MOVE_RIGHT, EAT, COUNT};  //Actions that entities can take on the map.
-enum ConsoleAction {CREATE_MAP, DELETE_MAP, VIEW_MAP, RUN_SIMULATION_STEPS, RUN_SIMULATION_GENERATIONS, COPY_MAP, OUTPUT_SIMULATION_STATUS, OUTPUT_MAPS_ONELINE, SAVE_MAP_STATE, LOAD_MAP_STATE}; //Commands that can be given from console to main program.
+enum ConsoleAction {CREATE_MAP, DELETE_MAP, VIEW_MAP, RUN_SIMULATION_STEPS, RUN_SIMULATION_GENERATIONS, COPY_MAP, OUTPUT_SIMULATION_STATUS, OUTPUT_MAPS_ONELINE, SAVE_MAP_STATE, LOAD_MAP_STATE, QUIT}; //Commands that can be given from console to main program.
 enum OutputLevel {OUTPUT_ONELINE, OUTPUT_OVERVIEW, OUTPUT_DEEP, OUTPUT_ALL};          //Detail levels that can be passed to output funktions of for example maps and entities.
 
 //Constants

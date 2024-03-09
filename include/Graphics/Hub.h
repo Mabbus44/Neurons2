@@ -48,6 +48,7 @@ class Hub
     ConsoleHandler _console;
     vector<shared_ptr<Map>> _maps;
     vector<SimulationJob> _jobs;
+    bool _quit = false;
 };
 
 #endif // HUB_H

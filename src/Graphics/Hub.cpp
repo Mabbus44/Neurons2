@@ -11,9 +11,9 @@ Hub::~Hub()
 }
 
 void Hub::run(){
-  createMap({DEFAULT_SETTINGS_FILENAME});
+  loadMapState({});
   auto _consoleRet = async(&ConsoleHandler::run, &_console);
-  while(true){
+  while(!_quit){
     parseConsoleInstructions();
     runSimulations();
     if(_neuronWindow.isOpen() || _mapWindow.isOpen()){
@@ -54,6 +54,10 @@ void Hub::parseConsoleInstructions(){
         break;
       case LOAD_MAP_STATE:
         loadMapState(_console.instructions[0].strArgs);
+        break;
+      case QUIT:
+        saveMapState({});
+        _quit = true;
         break;
     }
     _console.instructions.erase(_console.instructions.begin());
