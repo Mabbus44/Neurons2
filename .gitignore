@@ -34,3 +34,5 @@
 # My own
 *.depend
 *.layout
+*.mst
+*.mse
