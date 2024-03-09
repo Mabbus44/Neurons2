@@ -169,6 +169,27 @@ Json::Value EntitySpawner::getJson(){
   return ret;
 }
 
+shared_ptr<EntitySpawner> EntitySpawner::deepCopy(){
+  shared_ptr<EntitySpawner> ret = make_shared<EntitySpawner>();
+  ret->_entityType = _entityType;
+  ret->_spawnerType = _spawnerType;
+  ret->_entityCount = _entityCount;
+  ret->_minX = _minX;
+  ret->_minY = _minY;
+  ret->_maxX = _maxX;
+  ret->_maxY = _maxY;
+  ret->_sensorRadius = _sensorRadius;
+  ret->_maxEnergy = _maxEnergy;
+  ret->_startEnergy = _startEnergy;
+  ret->_energyCostMove = _energyCostMove;
+  ret->_energyCostEat = _energyCostEat;
+  ret->_energyCostNothing = _energyCostNothing;
+  ret->_energyGainEat = _energyGainEat;
+  ret->_eatDist = _eatDist;
+  ret->_maxMutation = _maxMutation;
+  return ret;
+}
+
 Map::Map()
 {
   //ctor
@@ -600,5 +621,37 @@ shared_ptr<Entity> Map::getSelectedEntity(){
         selectedEntityType = SelectableEntityType::SEL_COUNT - 1;
     }
   }
+  return ret;
+}
+
+shared_ptr<Map> Map::deepCopy(){
+  shared_ptr<Map> ret = make_shared<Map>();
+  ret->selectedEntityType = selectedEntityType;
+  ret->selectedEntityId = selectedEntityId;
+  ret->pause = pause;
+  ret->oneStep = oneStep;
+  ret->_validConfig = _validConfig;
+  ret->_mapSetUp = _mapSetUp;
+  ret->_generationDone = _generationDone;
+  ret->_sizeX = _sizeX;
+  ret->_sizeY = _sizeY;
+  ret->_tickCount = _tickCount;
+  ret->_zoom = _zoom;
+  ret->_generationCount = _generationCount;
+  ret->_resetHerbivoreCount = _resetHerbivoreCount;
+  ret->_resetCarnivoreCount = _resetCarnivoreCount;
+  for(shared_ptr<Carnivore> c: _carnivores)
+    ret->_carnivores.push_back(c->deepCopy());
+  for(shared_ptr<Herbivore> h: _herbivores)
+    ret->_herbivores.push_back(h->deepCopy());
+  for(shared_ptr<Plant> p: _plants)
+    ret->_plants.push_back(p->deepCopy());
+  for(shared_ptr<Carnivore> c: _bestCarnivores)
+    ret->_bestCarnivores.push_back(c->deepCopy());
+  for(shared_ptr<Herbivore> h: _bestHerbivores)
+    ret->_bestHerbivores.push_back(h->deepCopy());
+  for(shared_ptr<EntitySpawner> e: _entitySpawners)
+    ret->_entitySpawners.push_back(e->deepCopy());
+  ret->populateMap();
   return ret;
 }

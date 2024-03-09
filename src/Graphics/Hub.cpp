@@ -199,12 +199,13 @@ void Hub::runSimulations(){
 
 void Hub::createMap(vector<string> args){
   cout << "Creating map " << _maps.size() << "..." << endl;
-  if(args[0].size() == 0)
-    args[0] = DEFAULT_SETTINGS_FILENAME;
-  if(args[0][0] == '/')
-    args[0] = args[0].substr(1, args[0].size() - 1);
+  string fileName = DEFAULT_SETTINGS_FILENAME;
+  if(args.size() > 0 && args[0].size() > 0)
+    fileName = args[0];
+  if(fileName[0] == '/')
+    fileName = fileName.substr(1, fileName.size() - 1);
   shared_ptr<Map> m = make_shared<Map>();
-  if(m->loadMapSettings(args[0])){
+  if(m->loadMapSettings(fileName)){
     _maps.push_back(m);
     cout << "Map " << _maps.size()-1 << " created" << endl;
     m->resetMap();
@@ -233,7 +234,7 @@ void Hub::copyMap(vector<int> args){
   if(!(m=map(i)))
     return;
   cout << "Copying map " << i << "..." << endl;
-  //TODO Copy map
+  _maps.push_back(m->deepCopy());
   cout << "Done" << endl;
 }
 

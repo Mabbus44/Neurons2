@@ -19,6 +19,7 @@ class EntitySpawner
     void addCarnivores(vector<shared_ptr<Carnivore>>& entities, vector<shared_ptr<Carnivore>>& rawModels, int& rawModelId, vector<vector<shared_ptr<Entity>>>& map);
     void addHerbivores(vector<shared_ptr<Herbivore>>& entities, vector<shared_ptr<Herbivore>>& rawModels, int& rawModelId, vector<vector<shared_ptr<Entity>>>& map);
     void addPlants(vector<shared_ptr<Plant>>& entities, vector<vector<shared_ptr<Entity>>>& map);
+    shared_ptr<EntitySpawner> deepCopy();
     Json::Value getJson();
     int entityCount() {return _entityCount;}
     EntityType entityType() {return _entityType;};
@@ -70,16 +71,17 @@ class Map
     const vector<shared_ptr<Carnivore>>& bestCarnivore(){return _bestCarnivores;}
     const vector<shared_ptr<Herbivore>>& bestHerbivore(){return _bestHerbivores;}
     shared_ptr<Entity> getSelectedEntity();
+    shared_ptr<Map> deepCopy();
     int tickCount() {return _tickCount;}
     int zoom() {return _zoom;}
     int sizeX() {return _sizeX;}
     int sizeY() {return _sizeY;}
     int generationCount() {return _generationCount;}
-    bool pause=false;
-    bool oneStep=false;
     void output(string tab, OutputLevel level);
     int selectedEntityType = SelectableEntityType::SEL_CARNIVORE;
     int selectedEntityId = 0;
+    bool pause=false;
+    bool oneStep=false;
 
   protected:
 

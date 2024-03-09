@@ -24,6 +24,7 @@ class Entity
     void posX(int posX) {_posX = posX;}
     void posY(int posY) {_posY = posY;}
     void kill(vector<vector<shared_ptr<Entity>>>& map) {_alive = false; map[_posX][_posY].reset();}
+    shared_ptr<Entity> deepCopy(shared_ptr<Entity> ret = make_shared<Entity>());
 
   protected:
 
@@ -51,6 +52,7 @@ class Animal: public Entity
     shared_ptr<uint8_t[]> factors() {return _factors;}
     int energy() {return _energy;}
     int sensorRadius() {return _sensorRadius;}
+    shared_ptr<Animal> deepCopy(shared_ptr<Animal> ret = make_shared<Animal>());
 
   protected:
     void init(shared_ptr<Animal> rawModel = nullptr);
@@ -82,6 +84,7 @@ class Carnivore: public Animal
     Carnivore(int x, int y, shared_ptr<Carnivore> rawModel, int sensorRadius, int energy, int maxEnergy, int energyCostMove, int energyCostEat,
            int energyCostNothing,int energyGainEat, int eatDist, int maxMutation);
     virtual ~Carnivore(){}
+    shared_ptr<Carnivore> deepCopy();
 
   protected:
 
@@ -95,6 +98,7 @@ class Herbivore: public Animal
     Herbivore(int x, int y, shared_ptr<Herbivore> rawModel, int sensorRadius, int energy, int maxEnergy, int energyCostMove, int energyCostEat,
            int energyCostNothing,int energyGainEat, int eatDist, int maxMutation);
     virtual ~Herbivore(){}
+    shared_ptr<Herbivore> deepCopy();
 
   protected:
 
@@ -107,6 +111,7 @@ class Plant: public Entity
     Plant(){_entityType = EntityType::PLANT;}
     Plant(int x, int y) : Entity(x, y){_entityType = EntityType::PLANT;}
     virtual ~Plant(){}
+    shared_ptr<Plant> deepCopy();
 
   protected:
 

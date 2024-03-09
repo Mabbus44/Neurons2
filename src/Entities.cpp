@@ -29,6 +29,14 @@ Json::Value Entity::getJson(Json::Value ret){
   return ret;
 }
 
+shared_ptr<Entity> Entity::deepCopy(shared_ptr<Entity> ret){
+  ret->_posX = _posX;
+  ret->_posY = _posY;
+  ret->_entityType = _entityType;
+  ret->_alive = _alive;
+  return ret;
+}
+
 Animal::Animal(int x, int y, shared_ptr<Animal> rawModel, int sensorRadius, int energy, int maxEnergy, int energyCostMove, int energyCostEat,
            int energyCostNothing,int energyGainEat, int eatDist, int maxMutation) : Entity(x, y){
   _sensorRadius = sensorRadius;
@@ -305,14 +313,52 @@ void Animal::movePos(vector<vector<shared_ptr<Entity>>>& map, AnimalAction moveA
   removeEnergy(_energyCostNothing, map);
 }
 
+shared_ptr<Animal> Animal::deepCopy(shared_ptr<Animal> ret){
+  Entity::deepCopy(dynamic_pointer_cast<Entity>(ret));
+  ret->_action = _action;
+  ret->_sensorRadius = _sensorRadius;
+  ret->_energy = _energy;
+  ret->_maxEnergy = _maxEnergy;
+  ret->_energyCostMove = _energyCostMove;
+  ret->_energyCostEat = _energyCostEat;
+  ret->_energyCostNothing = _energyCostNothing;
+  ret->_energyGainEat = _energyGainEat;
+  ret->_eatDist = _eatDist;
+  ret->_maxMutation = _maxMutation;
+  ret->_inputSize = _inputSize;
+  ret->_factorSize = _factorSize;
+  ret->_factors = make_shared<uint8_t[]>(_factorSize);
+  for(int i=0; i<_factorSize; i++)
+    ret->_factors[i] = _factors[i];
+  return ret;
+}
+
 Carnivore::Carnivore(int x, int y, shared_ptr<Carnivore> rawModel, int sensorRadius, int energy, int maxEnergy, int energyCostMove, int energyCostEat,
             int energyCostNothing,int energyGainEat, int eatDist, int maxMutation) : Animal(x, y, rawModel, sensorRadius, energy, maxEnergy,
             energyCostMove, energyCostEat, energyCostNothing, energyGainEat, eatDist, maxMutation){
   _entityType = EntityType::CARNIVORE;
 }
 
+shared_ptr<Carnivore> Carnivore::deepCopy(){
+  shared_ptr<Carnivore> ret = make_shared<Carnivore>();
+  Animal::deepCopy(dynamic_pointer_cast<Animal>(ret));
+  return ret;
+}
+
 Herbivore::Herbivore(int x, int y, shared_ptr<Herbivore> rawModel, int sensorRadius, int energy, int maxEnergy, int energyCostMove, int energyCostEat,
             int energyCostNothing,int energyGainEat, int eatDist, int maxMutation) : Animal(x, y, rawModel, sensorRadius, energy, maxEnergy,
             energyCostMove, energyCostEat, energyCostNothing, energyGainEat, eatDist, maxMutation){
   _entityType = EntityType::HERBIVORE;
+}
+
+shared_ptr<Herbivore> Herbivore::deepCopy(){
+  shared_ptr<Herbivore> ret = make_shared<Herbivore>();
+  Animal::deepCopy(dynamic_pointer_cast<Animal>(ret));
+  return ret;
+}
+
+shared_ptr<Plant> Plant::deepCopy(){
+  shared_ptr<Plant> ret = make_shared<Plant>();
+  Entity::deepCopy(dynamic_pointer_cast<Entity>(ret));
+  return ret;
 }
