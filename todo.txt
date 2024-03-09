@@ -1,6 +1,4 @@
 TODO
-* Save mapstate
-* Load mapstate
 * Auto load/save on quit/open
 * Implement copy map
 * Put random element in action choise for entity
@@ -9,6 +7,7 @@ TODO
 Bugs
 
 Done todo
+* Save/load mapstate
 * Remove "init i"
 * Supply filename to "create map"
 * Move constants to map settings

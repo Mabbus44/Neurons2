@@ -28,11 +28,13 @@ class Hub
 
   private:
     void createMap(vector<string> args);
+    void copyMap(vector<int> args);
     void deleteMap(vector<int> args);
+    void saveMapState(vector<string> args);
+    void loadMapState(vector<string> args);
     void viewMap(vector<int> args);
     void runSimulationSteps(vector<int> args);
     void runSimulationGenerations(vector<int> args);
-    void copyMap(vector<int> args);
     void outputSimulationStatus(vector<int> args);
     void outputMapsOneline(vector<int> args);
     void parseConsoleInstructions();
@@ -40,7 +42,7 @@ class Hub
     void handleWindowEvents(SDL_Event& e);
     void handleKeyEvents(SDL_Event& e);
     void runSimulations();
-    shared_ptr<Map> map(int i);
+    shared_ptr<Map> map(int& i);
     MapWindow _mapWindow;
     NeuronsWindow _neuronWindow;
     ConsoleHandler _console;

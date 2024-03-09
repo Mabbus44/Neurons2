@@ -30,6 +30,7 @@ class ConsoleHandler
     void outputMapsOneline();
     vector<int> argsToInt(string args);
     vector<string> argsTostr(string args);
+    vector<string> splitCommandAndArguments(string args);
 };
 
 #endif // CONSOLEHANDLER_H

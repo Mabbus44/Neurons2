@@ -9,18 +9,17 @@
 #include <algorithm>
 #include <memory>
 
-using namespace Json;
-
 class EntitySpawner
 {
   public:
     EntitySpawner(){}
     virtual ~EntitySpawner(){free();}
-    bool loadSettings(Value input, int mapSizeX, int mapSizeY);
+    bool loadSettings(Json::Value& input, int mapSizeX, int mapSizeY);
     void free(){}
     void addCarnivores(vector<shared_ptr<Carnivore>>& entities, vector<shared_ptr<Carnivore>>& rawModels, int& rawModelId, vector<vector<shared_ptr<Entity>>>& map);
     void addHerbivores(vector<shared_ptr<Herbivore>>& entities, vector<shared_ptr<Herbivore>>& rawModels, int& rawModelId, vector<vector<shared_ptr<Entity>>>& map);
     void addPlants(vector<shared_ptr<Plant>>& entities, vector<vector<shared_ptr<Entity>>>& map);
+    Json::Value getJson();
     int entityCount() {return _entityCount;}
     EntityType entityType() {return _entityType;};
     int minX() {return _minX;}
@@ -57,12 +56,14 @@ class Map
     virtual ~Map();
     bool resetMap();          //Clears map and sets it up with new entities. If bestAnimals exist they will be used when creating new ones
     bool loadMapSettings(string fileName);
+    bool loadMapSettings(Json::Value& json);
     bool tick();              //If generation is done the map is reset. Then progress time one tick. Returns true when generation is done.
+    bool validConfig() {return _validConfig;}
+    bool generationDone() {return _generationDone;}
     void draw(MapWindow& window);
     void zoomIn() {_zoom++; if(_zoom > MAX_ZOOM) _zoom = MAX_ZOOM;}
     void zoomOut() {_zoom--; if(_zoom < 1) _zoom = 1;}
-    bool validConfig() {return _validConfig;}
-    bool generationDone() {return _generationDone;}
+    Json::Value getJson();
     const vector<shared_ptr<Carnivore>>& carnivores(){return _carnivores;}
     const vector<shared_ptr<Herbivore>>& herbivores(){return _herbivores;}
     const vector<shared_ptr<Plant>>& plants(){return _plants;}
@@ -86,6 +87,7 @@ class Map
     void free();                //Frees all memory
     void clearMap();            //Removes all entities on map, and the map (keeps best animals)
     void clearBestAnimals();    //Removes best animals
+    void populateMap();         //Create map and populate it with entities from entity vectors
     shared_ptr<uint8_t[]> inputFromArea(int posX, int posY, int sensorRadius);
     void inputFromSquare(int posX, int posY, shared_ptr<uint8_t[]> input, int inputPos);
     void decideAcitons();
@@ -93,7 +95,6 @@ class Map
     void removeDeadEntities();
     void saveBestCarnivores();
     void saveBestHerbivores();
-    shared_ptr<EntitySpawner> _defaultSpawner;
     bool _validConfig = false;
     bool _mapSetUp = false;
     bool _generationDone = false;
@@ -110,7 +111,7 @@ class Map
     vector<shared_ptr<Plant>> _plants;
     vector<shared_ptr<Carnivore>> _bestCarnivores;
     vector<shared_ptr<Herbivore>> _bestHerbivores;
-    list<shared_ptr<EntitySpawner>> _entitySpawners;
+    vector<shared_ptr<EntitySpawner>> _entitySpawners;
 };
 
 #endif // MAP_H

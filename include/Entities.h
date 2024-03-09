@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <memory>
+#include "json/json.h"
 using namespace std;
 
 class Entity
@@ -16,6 +17,8 @@ class Entity
     virtual ~Entity();
     EntityType entityType() {return _entityType;}
     bool alive() {return _alive;}
+    void load(const Json::Value& json);
+    virtual Json::Value getJson(Json::Value ret = Json::Value());
     int posX() {return _posX;}
     int posY() {return _posY;}
     void posX(int posX) {_posX = posX;}
@@ -43,6 +46,8 @@ class Animal: public Entity
     void addEnergy(int newEnergy);
     void performAction(vector<vector<shared_ptr<Entity>>>& map);
     bool removeEnergy(int lostEnergy, vector<vector<shared_ptr<Entity>>>& map);
+    void load(const Json::Value& json);
+    virtual Json::Value getJson(Json::Value ret = Json::Value());
     shared_ptr<uint8_t[]> factors() {return _factors;}
     int energy() {return _energy;}
     int sensorRadius() {return _sensorRadius;}

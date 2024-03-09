@@ -10,6 +10,25 @@ Entity::~Entity()
   //dtor
 }
 
+void Entity::load(const Json::Value& json){
+  if(json["_posX"].isInt())
+    _posX = (AnimalAction)json["_posX"].asInt();
+  if(json["_posY"].isInt())
+    _posY = json["_posY"].asInt();
+  if(json["_entityType"].isInt())
+    _entityType = EntityType(json["_entityType"].asInt());
+  if(json["_alive"].isInt())
+    _alive = json["_alive"].asBool();
+}
+
+Json::Value Entity::getJson(Json::Value ret){
+  ret["_posX"] = Json::Value(_posX);
+  ret["_posY"] = Json::Value(_posY);
+  ret["_entityType"] = Json::Value(_entityType);
+  ret["_alive"] = Json::Value(_alive);
+  return ret;
+}
+
 Animal::Animal(int x, int y, shared_ptr<Animal> rawModel, int sensorRadius, int energy, int maxEnergy, int energyCostMove, int energyCostEat,
            int energyCostNothing,int energyGainEat, int eatDist, int maxMutation) : Entity(x, y){
   _sensorRadius = sensorRadius;
@@ -37,6 +56,67 @@ Animal::Animal(const Animal &other) : Entity(other){
   initInputAndFactorSize();
   for(int i=0; i<_factorSize; i++)
     _factors[i] = other._factors[i];
+}
+
+void Animal::load(const Json::Value& json){
+  Entity::load(json);
+  if(json["_action"].isInt())
+    _action = (AnimalAction)json["_action"].asInt();
+  if(json["_sensorRadius"].isInt())
+    _sensorRadius = json["_sensorRadius"].asInt();
+  if(json["_energy"].isInt())
+    _energy = json["_energy"].asInt();
+  if(json["_maxEnergy"].isInt())
+    _maxEnergy = json["_maxEnergy"].asInt();
+  if(json["_energyCostMove"].isInt())
+    _energyCostMove = json["_energyCostMove"].asInt();
+  if(json["_energyCostEat"].isInt())
+    _energyCostEat = json["_energyCostEat"].asInt();
+  if(json["_energyCostNothing"].isInt())
+    _energyCostNothing = json["_energyCostNothing"].asInt();
+  if(json["_energyGainEat"].isInt())
+    _energyGainEat = json["_energyGainEat"].asInt();
+  if(json["_eatDist"].isInt())
+    _eatDist = json["_eatDist"].asInt();
+  if(json["_maxMutation"].isInt())
+    _maxMutation = json["_maxMutation"].asInt();
+  if(json["_inputSize"].isInt())
+    _inputSize = json["_inputSize"].asInt();
+  if(json["_factorSize"].isInt())
+    _factorSize = json["_factorSize"].asInt();
+  initInputAndFactorSize();                   //_inputSize and _factorSize will be overwritten, but perhaps the values from the file can be used in the future.
+  int addedFactors = 0;
+  if(json["_factors"].isArray()){
+    for(Json::Value::ArrayIndex factorId = 0; factorId < (json["_factors"]).size(); factorId++){
+      if(addedFactors >= _factorSize){
+        cout << "Warning: Json for Entity has more factors than _factorSize" << endl;
+      }else{
+        _factors[addedFactors++] = json["_factors"][factorId].asInt();
+      }
+    }
+    if(addedFactors < _factorSize)
+      cout << "Warning: Json for entity has fewer factors than _factorSize" << endl;
+  }
+}
+
+Json::Value Animal::getJson(Json::Value ret){
+  ret = Entity::getJson(ret);
+  ret["_action"] = Json::Value(_action);
+  ret["_sensorRadius"] = Json::Value(_sensorRadius);
+  ret["_energy"] = Json::Value(_energy);
+  ret["_maxEnergy"] = Json::Value(_maxEnergy);
+  ret["_energyCostMove"] = Json::Value(_energyCostMove);
+  ret["_energyCostEat"] = Json::Value(_energyCostEat);
+  ret["_energyCostNothing"] = Json::Value(_energyCostNothing);
+  ret["_energyGainEat"] = Json::Value(_energyGainEat);
+  ret["_eatDist"] = Json::Value(_eatDist);
+  ret["_maxMutation"] = Json::Value(_maxMutation);
+  ret["_inputSize"] = Json::Value(_inputSize);
+  ret["_factorSize"] = Json::Value(_factorSize);
+  ret["_factors"] = Json::Value(Json::arrayValue);
+  for(int i=0; i<_factorSize; i++)
+    ret["_factors"].append(Json::Value(_factors[i]));
+  return ret;
 }
 
 void Animal::decideAction(shared_ptr<uint8_t[]> input){

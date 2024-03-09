@@ -49,6 +49,12 @@ void Hub::parseConsoleInstructions(){
       case OUTPUT_MAPS_ONELINE:
         outputMapsOneline(_console.instructions[0].args);
         break;
+      case SAVE_MAP_STATE:
+        saveMapState(_console.instructions[0].strArgs);
+        break;
+      case LOAD_MAP_STATE:
+        loadMapState(_console.instructions[0].strArgs);
+        break;
     }
     _console.instructions.erase(_console.instructions.begin());
   }
@@ -215,6 +221,99 @@ void Hub::deleteMap(vector<int> args){
   cout << "Map " << i << " deleted" << endl;
 }
 
+void Hub::copyMap(vector<int> args){
+  shared_ptr<Map> m;
+  int i=-1;
+  if(args.size()>0)
+    i=args[0];
+  if(!(m=map(i)))
+    return;
+  cout << "Copying map " << i << "..." << endl;
+  //TODO Copy map
+  cout << "Done" << endl;
+}
+
+void Hub::saveMapState(vector<string> args){
+  int i=-1;
+  string fileName = DEFAULT_MAP_STATE_FILENAME;
+  if(args.size()>1){
+    try{
+      i = stoi(args[0]);
+    }catch(...){
+      i = -1;
+    }
+    fileName = args[1];
+  }
+  if(args.size() == 1)
+    fileName = args[0];
+  if(_maps.size() == 0){
+    cout << "No maps to save" << endl;
+    return;
+  }
+  ofstream file(fileName);
+  if(file.fail()){
+    cout << "Error: could not create file " << fileName << endl;
+    return;
+  }
+  Json::Value fileContents = Json::Value(Json::arrayValue);
+  if(i==-1){
+    cout << "Saving map state for all maps to file " << fileName << "..." << endl;
+    for(shared_ptr<Map>& m: _maps)
+      fileContents.append(m->getJson());
+  }else{
+    shared_ptr<Map> m;
+    if(!(m=map(i)))
+      return;
+    cout << "Saving map state " << i << " to filename " << fileName << "..." << endl;
+    fileContents.append(m->getJson());
+  }
+  try{
+    file << fileContents;
+  }
+  catch(exception& e){
+    cout << "Error: Could not write to file " << fileName << endl;
+    cout << e.what() << endl;
+    file.close();
+    return;
+  }
+  file.close();
+  cout << "Save done" << endl;
+}
+
+void Hub::loadMapState(vector<string> args){
+  string fileName = DEFAULT_MAP_STATE_FILENAME;
+  if(args.size()>0)
+    fileName = args[0];
+  ifstream file(fileName);
+  if(file.fail()){
+    cout << "Error: could not open file " << fileName << endl;
+    return;
+  }
+  Json::Value fileContents;
+  cout << "Loading map states from file " << fileName << "..." << endl;
+  try{
+    file >> fileContents;
+  }
+  catch(exception& e){
+    cout << "Error: Could not read from file " << fileName << endl;
+    cout << e.what() << endl;
+    file.close();
+    return;
+  }
+  file.close();
+
+  if(fileContents.isArray()){
+    for(Json::Value::ArrayIndex mapId = 0; mapId < fileContents.size(); mapId++){
+      _maps.push_back(make_shared<Map>());
+      _maps.back()->loadMapSettings(fileContents[mapId]);
+    }
+  }else{
+    cout << "File format invalid, does not contain array" << endl;
+    return;
+  }
+  cout << fileContents.size() << " map states loaded" << endl;
+}
+
 void Hub::viewMap(vector<int> args){
   shared_ptr<Map> m;
   int i=-1;
@@ -259,18 +358,6 @@ void Hub::runSimulationGenerations(vector<int> args){
   _jobs.push_back(SimulationJob(SIMULATION_GENERATION, steps, m));
 }
 
-void Hub::copyMap(vector<int> args){
-  shared_ptr<Map> m;
-  int i=-1;
-  if(args.size()>0)
-    i=args[0];
-  if(!(m=map(i)))
-    return;
-  cout << "Copying map " << i << "..." << endl;
-  //TODO Copy map
-  cout << "Done" << endl;
-}
-
 void Hub::outputSimulationStatus(vector<int> args){
   if(_jobs.size()==0)
     cout << "No simulations running" << endl;
@@ -286,7 +373,7 @@ void Hub::outputSimulationStatus(vector<int> args){
   }
 }
 
-shared_ptr<Map> Hub::map(int i){
+shared_ptr<Map> Hub::map(int& i){
   if(_maps.size() == 0){
     cout << "No maps available " << endl;
     return shared_ptr<Map>();

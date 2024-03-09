@@ -1,6 +1,6 @@
 #include "Map.h"
 
-bool EntitySpawner::loadSettings(Json::Value& input, int mapSizeX, int mapSizeY){
+bool EntitySpawner::loadSettings(Json::Value input, int mapSizeX, int mapSizeY){
   for(Json::Value::const_iterator itr = input.begin() ; itr != input.end() ; itr++){
     if(itr.key() == "spawnerType" && (*itr).isString()){
       if((*itr).asString() == "evenDistribution")
@@ -134,41 +134,6 @@ void EntitySpawner::addPlants(vector<shared_ptr<Plant>>& entities, vector<vector
   }
 }
 
-Json::Value EntitySpawner::getJson(){
-  Json::Value ret;
-  switch(_spawnerType){
-    case SpawnerType::EVEN_DISTROBUTION:
-      ret["spawnerType"] = Json::Value("evenDistribution");
-      break;
-  }
-  switch(_entityType){
-    case EntityType::CARNIVORE:
-      ret["entityType"] = Json::Value("carnivore");
-      break;
-    case EntityType::HERBIVORE:
-      ret["entityType"] = Json::Value("herbivore");
-      break;
-    case EntityType::PLANT:
-      ret["entityType"] = Json::Value("plant");
-      break;
-  }
-  ret["entityCount"] = Json::Value(_entityCount);
-  ret["minX"] = Json::Value(_minX);
-  ret["minY"] = Json::Value(_minY);
-  ret["maxX"] = Json::Value(_maxX);
-  ret["maxY"] = Json::Value(_maxY);
-  ret["sensorRadius"] = Json::Value(_sensorRadius);
-  ret["maxEnergy"] = Json::Value(_maxEnergy);
-  ret["startEnergy"] = Json::Value(_startEnergy);
-  ret["energyCostMove"] = Json::Value(_energyCostMove);
-  ret["energyCostEat"] = Json::Value(_energyCostEat);
-  ret["energyCostNothing"] = Json::Value(_energyCostNothing);
-  ret["energyGainEat"] = Json::Value(_energyGainEat);
-  ret["eatDist"] = Json::Value(_eatDist);
-  ret["maxMutation"] = Json::Value(_maxMutation);
-  return ret;
-}
-
 Map::Map()
 {
   //ctor
@@ -225,17 +190,6 @@ bool Map::resetMap(){
   return true;
 }
 
-void Map::populateMap(){
-  vector<shared_ptr<Entity>> row = vector<shared_ptr<Entity>>(_sizeX);
-  _map = vector<vector<shared_ptr<Entity>>>(_sizeY, row);
-  for(shared_ptr<Carnivore> p: _carnivores)
-    _map[p->posX()][p->posY()] = p;
-  for(shared_ptr<Herbivore> p: _herbivores)
-    _map[p->posX()][p->posY()] = p;
-  for(shared_ptr<Plant> p: _plants)
-    _map[p->posX()][p->posY()] = p;
-}
-
 bool Map::loadMapSettings(string fileName){
   ifstream file(fileName);
   if(file.fail()){
@@ -252,11 +206,7 @@ bool Map::loadMapSettings(string fileName){
     return _validConfig;
   }
   free();
-  return loadMapSettings(fileContents);
-}
-
-bool Map::loadMapSettings(Json::Value& json){
-  for(Json::Value::const_iterator itr = json.begin() ; itr != json.end() ; itr++){
+  for(Json::Value::const_iterator itr = fileContents.begin() ; itr != fileContents.end() ; itr++){
     if(itr.key() == "defaultSpawner" && (*itr).isObject()){
     }else if(itr.key() == "entitySpawners" && (*itr).isArray()){
     }else if(itr.key() == "sizeX" && (*itr).isIntegral()){
@@ -267,59 +217,22 @@ bool Map::loadMapSettings(Json::Value& json){
       _resetHerbivoreCount = (*itr).asInt();
     }else if(itr.key() == "resetCarnivoreCount" && (*itr).isIntegral()){
       _resetCarnivoreCount = (*itr).asInt();
-    }else if(itr.key() == "_validConfig" && (*itr).isBool()){
-      _validConfig = (*itr).asBool();
-    }else if(itr.key() == "_mapSetUp" && (*itr).isBool()){
-      _mapSetUp = (*itr).asBool();
-    }else if(itr.key() == "_generationDone" && (*itr).isBool()){
-      _generationDone = (*itr).asBool();
-    }else if(itr.key() == "_tickCount" && (*itr).isIntegral()){
-      _tickCount = (*itr).asInt();
-    }else if(itr.key() == "_zoom" && (*itr).isIntegral()){
-      _zoom = (*itr).asInt();
-    }else if(itr.key() == "_generationCount" && (*itr).isIntegral()){
-      _generationCount = (*itr).asInt();
-    }else if(itr.key() == "_carnivores" && (*itr).isArray()){
-      for(Json::Value::ArrayIndex entityId = 0; entityId < (*itr).size(); entityId++){
-        _carnivores.push_back(make_shared<Carnivore>());
-        _carnivores.back()->load((*itr)[entityId]);
-      }
-    }else if(itr.key() == "_herbivores" && (*itr).isArray()){
-      for(Json::Value::ArrayIndex entityId = 0; entityId < (*itr).size(); entityId++){
-        _herbivores.push_back(make_shared<Herbivore>());
-        _herbivores.back()->load((*itr)[entityId]);
-      }
-    }else if(itr.key() == "_plants" && (*itr).isArray()){
-      for(Json::Value::ArrayIndex entityId = 0; entityId < (*itr).size(); entityId++){
-        _plants.push_back(make_shared<Plant>());
-        _plants.back()->load((*itr)[entityId]);
-      }
-    }else if(itr.key() == "_bestCarnivores" && (*itr).isArray()){
-      for(Json::Value::ArrayIndex entityId = 0; entityId < (*itr).size(); entityId++){
-        _bestCarnivores.push_back(make_shared<Carnivore>());
-        _bestCarnivores.back()->load((*itr)[entityId]);
-      }
-    }else if(itr.key() == "_bestHerbivores" && (*itr).isArray()){
-      for(Json::Value::ArrayIndex entityId = 0; entityId < (*itr).size(); entityId++){
-        _bestHerbivores.push_back(make_shared<Herbivore>());
-        _bestHerbivores.back()->load((*itr)[entityId]);
-      }
     }else{
       cout << "Warning: Invalid key {" << itr.key() << "} in map settings" << endl;
     }
   }
-  shared_ptr<EntitySpawner> _defaultSpawner = make_shared<EntitySpawner>();
-  if(json.isMember("defaultSpawner") && json["defaultSpawner"].isObject()){
-    _defaultSpawner->loadSettings(json["defaultSpawner"], _sizeX, _sizeY);
+  shared_ptr<EntitySpawner> _defaultSpawner;
+  if(fileContents.isMember("defaultSpawner") && fileContents["defaultSpawner"].isObject()){
+    _defaultSpawner = make_shared<EntitySpawner>();
+    _defaultSpawner->loadSettings(fileContents["defaultSpawner"], _sizeX, _sizeY);
   }
-  if(json.isMember("entitySpawners") && json["entitySpawners"].isArray()){
-    for(Json::Value::ArrayIndex spawnerId = 0; spawnerId < (json["entitySpawners"]).size(); spawnerId++){
+  if(fileContents.isMember("entitySpawners") && fileContents["entitySpawners"].isArray()){
+    for(Json::Value::ArrayIndex spawnerId = 0; spawnerId < (fileContents["entitySpawners"]).size(); spawnerId++){
       shared_ptr<EntitySpawner> e = make_shared<EntitySpawner>(*_defaultSpawner);
-      if(e->loadSettings((json["entitySpawners"])[spawnerId], _sizeX, _sizeY))
+      if(e->loadSettings((fileContents["entitySpawners"])[spawnerId], _sizeX, _sizeY))
         _entitySpawners.push_back(e);
     }
   }
-  populateMap();
   _validConfig = true;
   return _validConfig;
 }
@@ -371,35 +284,7 @@ void Map::draw(MapWindow& window){
 
 Json::Value Map::getJson(){
   Json::Value ret;
-  ret["_validConfig"] = Json::Value(_validConfig);
-  ret["_mapSetUp"] = Json::Value(_mapSetUp);
-  ret["_generationDone"] = Json::Value(_generationDone);
-  ret["sizeX"] = Json::Value(_sizeX);
-  ret["sizeY"] = Json::Value(_sizeY);
-  ret["_tickCount"] = Json::Value(_tickCount);
-  ret["_zoom"] = Json::Value(_zoom);
-  ret["_generationCount"] = Json::Value(_generationCount);
-  ret["resetCarnivoreCount"] = Json::Value(_resetHerbivoreCount);
-  ret["resetHerbivoreCount"] = Json::Value(_resetCarnivoreCount);
-  ret["_carnivores"] = Json::Value(Json::arrayValue);
-  ret["_herbivores"] = Json::Value(Json::arrayValue);
-  ret["_plants"] = Json::Value(Json::arrayValue);
-  ret["_bestCarnivores"] = Json::Value(Json::arrayValue);
-  ret["_bestHerbivores"] = Json::Value(Json::arrayValue);
-  ret["entitySpawners"] = Json::Value(Json::arrayValue);
-  for(shared_ptr<Carnivore> p: _carnivores)
-    ret["_carnivores"].append(p->getJson());
-  for(shared_ptr<Herbivore> p: _herbivores)
-    ret["_herbivores"].append(p->getJson());
-  for(shared_ptr<Plant> p: _plants)
-    ret["_plants"].append(p->getJson());
-  for(shared_ptr<Carnivore> p: _bestCarnivores)
-    ret["_bestCarnivores"].append(p->getJson());
-  for(shared_ptr<Herbivore> p: _bestHerbivores)
-    ret["_bestHerbivores"].append(p->getJson());
-  for(shared_ptr<EntitySpawner> p: _entitySpawners)
-    ret["entitySpawners"].append(p->getJson());
-  return ret;
+  return Json::Value();
 }
 
 void Map::free(){
