@@ -37,6 +37,7 @@ class Hub
     void runSimulationGenerations(vector<int> args);
     void outputSimulationStatus(vector<int> args);
     void outputMapsOneline(vector<int> args);
+    void renameMap(vector<string> args);
     void parseConsoleInstructions();
     void handleSdlEvents();
     void handleWindowEvents(SDL_Event& e);

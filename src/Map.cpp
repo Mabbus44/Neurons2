@@ -192,7 +192,24 @@ shared_ptr<EntitySpawner> EntitySpawner::deepCopy(){
 
 Map::Map()
 {
-  //ctor
+  std::time_t t = std::time(0);   // get time now
+  std::tm* now = std::localtime(&t);
+  string mon = to_string(now->tm_mon + 1);
+  string day = to_string(now->tm_mday);
+  string hour = to_string(now->tm_hour);
+  string min = to_string(now->tm_min);
+  string sec = to_string(now->tm_sec);
+  if(mon.length() == 1)
+    mon = "0" + mon;
+  if(day.length() == 1)
+    day = "0" + day;
+  if(hour.length() == 1)
+    hour = "0" + hour;
+  if(min.length() == 1)
+    min = "0" + min;
+  if(sec.length() == 1)
+    sec = "0" + sec;
+  _name = to_string(now->tm_year + 1900) + mon + day + " " + hour + ":" + min + ":" + sec;
 }
 
 Map::~Map()
@@ -288,6 +305,8 @@ bool Map::loadMapSettings(Json::Value& json){
       _resetHerbivoreCount = (*itr).asInt();
     }else if(itr.key() == "resetCarnivoreCount" && (*itr).isIntegral()){
       _resetCarnivoreCount = (*itr).asInt();
+    }else if(itr.key() == "_name" && (*itr).isString()){
+      _name = (*itr).asString();
     }else if(itr.key() == "_validConfig" && (*itr).isBool()){
       _validConfig = (*itr).asBool();
     }else if(itr.key() == "_mapSetUp" && (*itr).isBool()){
@@ -392,6 +411,7 @@ void Map::draw(MapWindow& window){
 
 Json::Value Map::getJson(){
   Json::Value ret;
+  ret["_name"] = Json::Value(_name);
   ret["_validConfig"] = Json::Value(_validConfig);
   ret["_mapSetUp"] = Json::Value(_mapSetUp);
   ret["_generationDone"] = Json::Value(_generationDone);
@@ -547,7 +567,7 @@ void Map::output(string tab, OutputLevel level){
     case OutputLevel::OUTPUT_ALL:
     case OutputLevel::OUTPUT_DEEP:
     case OutputLevel::OUTPUT_OVERVIEW:
-      cout << tab << "Address: " << this << " Carnivores: " << _carnivores.size() << " Herbivores: " << _herbivores.size() << " Plants: " << _plants.size();
+      cout << tab << "Name: " << _name << " Generation: " << _generationCount << " Tick: " << _tickCount;
       break;
   }
 }
@@ -626,6 +646,7 @@ shared_ptr<Entity> Map::getSelectedEntity(){
 
 shared_ptr<Map> Map::deepCopy(){
   shared_ptr<Map> ret = make_shared<Map>();
+  ret->_name = _name;
   ret->selectedEntityType = selectedEntityType;
   ret->selectedEntityId = selectedEntityId;
   ret->pause = pause;

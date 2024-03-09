@@ -55,6 +55,9 @@ void Hub::parseConsoleInstructions(){
       case LOAD_MAP_STATE:
         loadMapState(_console.instructions[0].strArgs);
         break;
+      case RENAME_MAP:
+        renameMap(_console.instructions[0].strArgs);
+        break;
       case QUIT:
         saveMapState({});
         _quit = true;
@@ -212,6 +215,31 @@ void Hub::createMap(vector<string> args){
   }else{
     cout << "Error: Could not create map" << endl;
   }
+}
+
+void Hub::renameMap(vector<string> args){
+  if(args.size()<2){
+    cout << "Error: Missing arguments" << endl;
+    return;
+  }
+  int i = -1;
+  try{
+    i = stoi(args[0]);
+  }catch(...){
+    i = -1;
+  }
+  if(i==-1){
+    cout << "Error: Invalid map id" << endl;
+    return;
+  }
+
+  shared_ptr<Map> m = map(i);
+  if(!m){
+    cout << "Error: Map id does not exist" << endl;
+    return;
+  }
+  m->name(args[1]);
+  cout << "Map name changed" << endl;
 }
 
 void Hub::deleteMap(vector<int> args){

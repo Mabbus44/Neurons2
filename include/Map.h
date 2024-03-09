@@ -8,6 +8,7 @@
 #include <list>
 #include <algorithm>
 #include <memory>
+#include <ctime>
 
 class EntitySpawner
 {
@@ -72,12 +73,13 @@ class Map
     const vector<shared_ptr<Herbivore>>& bestHerbivore(){return _bestHerbivores;}
     shared_ptr<Entity> getSelectedEntity();
     shared_ptr<Map> deepCopy();
+    void output(string tab, OutputLevel level);
+    void name(string n) {_name = n;}
     int tickCount() {return _tickCount;}
     int zoom() {return _zoom;}
     int sizeX() {return _sizeX;}
     int sizeY() {return _sizeY;}
     int generationCount() {return _generationCount;}
-    void output(string tab, OutputLevel level);
     int selectedEntityType = SelectableEntityType::SEL_CARNIVORE;
     int selectedEntityId = 0;
     bool pause=false;
@@ -97,6 +99,7 @@ class Map
     void removeDeadEntities();
     void saveBestCarnivores();
     void saveBestHerbivores();
+    string _name;
     bool _validConfig = false;
     bool _mapSetUp = false;
     bool _generationDone = false;

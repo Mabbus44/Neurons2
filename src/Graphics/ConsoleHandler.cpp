@@ -29,6 +29,7 @@ void ConsoleHandler::run(){
       cout << "delete i\tdeletes map with id i" << endl;
       cout << "save i s\tsaves state of map with id i to file s" << endl;
       cout << "load s\t\tload state from file s" << endl;
+      cout << "rename i s\trename map i to s" << endl;
       cout << "viewmap i\tshows graphics for map i" << endl;
       cout << "runstep i j\truns map with id i for j simulation steps" << endl;
       cout << "rungen i j\truns map with id i for j simulation generations" << endl;
@@ -49,6 +50,7 @@ void ConsoleHandler::run(){
       if(commandAndArgs[0] == "delete") instructions.push_back(Instruction(DELETE_MAP, args));
       if(commandAndArgs[0] == "save") instructions.push_back(Instruction(SAVE_MAP_STATE, strArgs));
       if(commandAndArgs[0] == "load") instructions.push_back(Instruction(LOAD_MAP_STATE, strArgs));
+      if(commandAndArgs[0] == "rename") instructions.push_back(Instruction(RENAME_MAP, strArgs));
       if(commandAndArgs[0] == "viewmap") instructions.push_back(Instruction(VIEW_MAP, args));
       if(commandAndArgs[0] == "runstep") instructions.push_back(Instruction(RUN_SIMULATION_STEPS, args));
       if(commandAndArgs[0] == "rungen") instructions.push_back(Instruction(RUN_SIMULATION_GENERATIONS, args));

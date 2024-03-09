@@ -1,11 +1,11 @@
 TODO
-* Add name to maps and option to edit names
-* Change what info are shown for maps
 * Put random element in action choise for entity
 
 Bugs
 
 Done todo
+* Change what info are shown for maps
+* Add name to maps and option to edit names
 * Implement copy map
 * Auto load/save on quit/open
 * Save/load mapstate
