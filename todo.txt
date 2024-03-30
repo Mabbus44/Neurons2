@@ -1,9 +1,16 @@
 TODO
-* Put random element in action choise for entity
+* Add logging to file
+* Add water (impassable)
+* Grass spread every x ticks
+* Add energyLevel as input
+* Animals cant eat when full
+* Add animal action "Mate" (Create new offspring on the fly), and an ageing value (die after x steps)
 
 Bugs
+* Randomly crashes after a good while since I added random element in action choise (have not happend when I didnt open window yet, but might be a conicidence)
 
 Done todo
+* Put random element in action choise for animal
 * Change what info are shown for maps
 * Add name to maps and option to edit names
 * Implement copy map

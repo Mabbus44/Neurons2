@@ -31,7 +31,28 @@ bool EntitySpawner::loadSettings(Json::Value& input, int mapSizeX, int mapSizeY)
       if(_maxY == -1)
         _maxY = mapSizeY-1;
     }else if(itr.key() == "sensorRadius" && (*itr).isIntegral()){
+
+      /*
+      factors and inputs are 8bit (unsigned).
+      actionWeight is 32 bit
+      1 bit is lost to sign
+      actionWeight += ((_factors[factorId])-128) * (input[inputId])
+      each addition is maximum a 16 bit number (unsigned)
+
+      factorCount can maximum be a 32-1-16 = 15 bits (unsigned), so 2^15 = 32768
+      for INPUTS_PER_SQURE = 4 that means _sensorRadius can be maximum 44
+
+      factorCount = INPUTS_PER_SQUARE * (_sensorRadius * 2 + 1) * (_sensorRadius * 2 + 1)
+
+      Since we do _factors[]-128 that one is really just 7 bits, so 2^16 = 65536 and _sensorRadius = 63.
+      But I havent checked edge cases, so 2^15 is still plenty
+      */
       _sensorRadius = (*itr).asInt();
+      uint32_t inputSize = INPUTS_PER_SQUARE * (_sensorRadius * 2 + 1) * (_sensorRadius * 2 + 1);
+      uint32_t factorSize = inputSize * AnimalAction::COUNT;
+      if(factorSize >= 32768){
+        cout << "Warning: FactorCount is " << factorSize << ", which is larger then 2^15, possible overflow in actionWeight calculation" << endl;
+      }
     }else if(itr.key() == "maxEnergy" && (*itr).isIntegral()){
       _maxEnergy = (*itr).asInt();
     }else if(itr.key() == "startEnergy" && (*itr).isIntegral()){

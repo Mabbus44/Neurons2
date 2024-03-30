@@ -128,6 +128,58 @@ Json::Value Animal::getJson(Json::Value ret){
 }
 
 void Animal::decideAction(shared_ptr<uint8_t[]> input){
+  /*
+  Ideally I would like to calculate actionWeightSum = sum(actionWeigt for all actions)
+  and then the ods for each action would be actionWeight/actionWeightSum.
+  But since that would require 64bit int to not overflow, and saving all actionweights in a vector I figured it might be slow.
+  (But on a second thougth it might be negitable, but I have worked out this other method, and sunken cost fallacy is pretty cool,
+   I´ll do it this other way)
+  So each actionWeight is always competing against the current best actionWeight.
+  And everytime a action wins its chanses are doubled for the next competition.
+  The math will end up to almost the same as proper method, 32 bit int is enough, and no vector required, hopefully making it faster.
+
+  A positive actionWeight always beat a negative one.
+  */
+  int factorId = 0;
+  uint32_t highestActionWeight = 0;               // Weight of leading action
+  uint32_t highestActionMultiplier = 1;           // Multiplier of leading actions weight (2^how many times it has won)
+  bool highestActionWeightPositiveSign = false;   // If leading actions weight is positive
+  _action = (AnimalAction)0;                      // ID of leading action
+  for(int actionId = 0; actionId < AnimalAction::COUNT; actionId++){
+    int32_t actionWeight = 0;
+    for(int inputId=0; inputId<_inputSize; inputId++)
+      actionWeight += ((int32_t)(_factors[factorId++])-128) * (int32_t)(input[inputId]);
+    bool win = false;
+    bool positive = true;
+
+    if(actionWeight < 0){
+      actionWeight += 2147483648; // Convert to positive number
+      positive = false;
+    }
+    if(highestActionWeightPositiveSign == positive){
+      uint32_t actionWeightCopy = (uint32_t)actionWeight / highestActionMultiplier;
+      uint32_t prodSum = highestActionWeight + actionWeightCopy;
+      while(prodSum > RAND_MAX){
+        // Scale to fit random number generator
+        prodSum /= 2;
+        actionWeightCopy /= 2;
+      }
+      if(rand()%prodSum < actionWeightCopy)
+        win = true;
+    }
+    if(!highestActionWeightPositiveSign && positive)
+      win = true;
+    if(win){
+      highestActionWeight = actionWeight;
+      highestActionMultiplier = 2;
+      highestActionWeightPositiveSign = positive;
+      _action = (AnimalAction)actionId;
+    }else
+      highestActionMultiplier *= 2;
+  }
+}
+
+void Animal::decideActionDeterministic(shared_ptr<uint8_t[]> input){
   // As long as inputSize < 2^16 (65536) we wont get overflow if input and factor are 8 bit, and result 32 bit.
   int factorId = 0;
   int32_t highestActionWeight = -2147483648;

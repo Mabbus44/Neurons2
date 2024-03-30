@@ -12,19 +12,20 @@
 		"minY": 0,
 		"maxX": -1,
 		"maxY": -1,
-		"sensorRadius": 5,
-		"eatDist": 2,
+		"sensorRadius": 7,
+		"eatDist": 4,
 		"maxMutation": 10,
-		"maxEnergy": 5000,
+		"maxEnergy": 30000,
 		"startEnergy": 500,
-		"energyCostMove": 20,
+		"energyCostMove": 10,
 		"energyCostEat": 10,
-		"energyCostNothing": 5,
+		"energyCostNothing": 10,
 		"energyGainEat": 4000
 	},
 	"entitySpawners":
 	[{
 		"entityType": "carnivore",
+		"energyGainEat": 15000,
 		"entityCount": 10
 	},{
 		"entityType": "herbivore",

@@ -44,6 +44,7 @@ class Animal: public Entity
     virtual ~Animal(){}
     AnimalAction action() {return _action;}
     void decideAction(shared_ptr<uint8_t[]> input);
+    void decideActionDeterministic(shared_ptr<uint8_t[]> input);
     void addEnergy(int newEnergy);
     void performAction(vector<vector<shared_ptr<Entity>>>& map);
     bool removeEnergy(int lostEnergy, vector<vector<shared_ptr<Entity>>>& map);
