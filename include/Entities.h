@@ -1,5 +1,6 @@
 #ifndef ENTITIES_H
 #define ENTITIES_H
+#include "common.h"
 #include "Constants.h"
 #include <vector>
 #include <iostream>

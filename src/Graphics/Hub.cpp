@@ -1,13 +1,18 @@
 #include "Graphics/Hub.h"
 
+shared_ptr<spdlog::logger> logger;
+
 Hub::Hub()
 {
-  //ctor
+  auto max_size = 1024*1024*50;
+  auto max_files = 3;
+  logger = spdlog::rotating_logger_st("logger", "logs/log.txt", max_size, max_files);
+  logger->set_level(spdlog::level::debug);
+  logger->debug("Logging started");
 }
 
 Hub::~Hub()
 {
-  //dtor
 }
 
 void Hub::run(){

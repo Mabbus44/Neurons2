@@ -1,6 +1,7 @@
 #ifndef HUB_H
 #define HUB_H
 
+#include "common.h"
 #include "Graphics/ConsoleHandler.h"
 #include <thread>
 #include <future>

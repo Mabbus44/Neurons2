@@ -35,12 +35,14 @@
 			<Add option="-fexceptions" />
 			<Add directory="C:/SDLLib64/include/SDL2" />
 			<Add directory="C:/SDLTTFLib64/include/SDL2" />
+			<Add directory="C:/ProgrammingLibs/spdlogManualInstall/include" />
 		</Compiler>
 		<Linker>
 			<Add option="-lmingw32 -lSDL2main -lSDL2 -lSDL2_ttf" />
 			<Add directory="C:/SDLLib64/lib" />
 			<Add directory="C:/SDLTTFLib64/lib" />
 		</Linker>
+		<Unit filename="include/Common.h" />
 		<Unit filename="include/Constants.h" />
 		<Unit filename="include/Entities.h" />
 		<Unit filename="include/Graphics/ConsoleHandler.h" />

@@ -1,6 +1,7 @@
 #ifndef SDLWINDOW_H
 #define SDLWINDOW_H
 
+#include "common.h"
 #include <SDL.h>
 #include <SDL_ttf.h>
 #include <iostream>

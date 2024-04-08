@@ -1,5 +1,6 @@
 #ifndef CONSTANTS_H_INCLUDED
 #define CONSTANTS_H_INCLUDED
+#include "common.h"
 #include <string>
 using namespace std;
 

@@ -1,5 +1,4 @@
 TODO
-* Add logging to file
 * Add water (impassable)
 * Grass spread every x ticks
 * Add energyLevel as input
@@ -10,6 +9,7 @@ Bugs
 * Randomly crashes after a good while since I added random element in action choise (have not happend when I didnt open window yet, but might be a conicidence)
 
 Done todo
+* Add logging to file
 * Put random element in action choise for animal
 * Change what info are shown for maps
 * Add name to maps and option to edit names

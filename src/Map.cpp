@@ -1,6 +1,7 @@
 #include "Map.h"
 
 bool EntitySpawner::loadSettings(Json::Value& input, int mapSizeX, int mapSizeY){
+  logger->trace("EntitySpawner::loadSettings(input, {}, {})", mapSizeX, mapSizeY);
   for(Json::Value::const_iterator itr = input.begin() ; itr != input.end() ; itr++){
     if(itr.key() == "spawnerType" && (*itr).isString()){
       if((*itr).asString() == "evenDistribution")
@@ -77,6 +78,7 @@ bool EntitySpawner::loadSettings(Json::Value& input, int mapSizeX, int mapSizeY)
 }
 
 void EntitySpawner::addCarnivores(vector<shared_ptr<Carnivore>>& entities, vector<shared_ptr<Carnivore>>& rawModels, int& rawModelId, vector<vector<shared_ptr<Entity>>>& map){
+  logger->trace("EntitySpawner::addCarnivores(entities, rawModels, {}, map)", rawModelId);
   int posX, posY;
   for(int eId=0; eId < _entityCount; eId++){
     int retries = 0;
@@ -106,6 +108,7 @@ void EntitySpawner::addCarnivores(vector<shared_ptr<Carnivore>>& entities, vecto
 }
 
 void EntitySpawner::addHerbivores(vector<shared_ptr<Herbivore>>& entities, vector<shared_ptr<Herbivore>>& rawModels, int& rawModelId, vector<vector<shared_ptr<Entity>>>& map){
+  logger->trace("EntitySpawner::addHerbivores(entities, rawModels, {}, map)", rawModelId);
   int posX, posY;
   for(int eId=0; eId < _entityCount; eId++){
     int retries = 0;
@@ -135,6 +138,7 @@ void EntitySpawner::addHerbivores(vector<shared_ptr<Herbivore>>& entities, vecto
 }
 
 void EntitySpawner::addPlants(vector<shared_ptr<Plant>>& entities, vector<vector<shared_ptr<Entity>>>& map){
+  logger->trace("EntitySpawner::addPlants(entities, map)");
   int posX, posY;
   for(int eId=0; eId < _entityCount; eId++){
     int retries = 0;
@@ -156,6 +160,7 @@ void EntitySpawner::addPlants(vector<shared_ptr<Plant>>& entities, vector<vector
 }
 
 Json::Value EntitySpawner::getJson(){
+  logger->trace("EntitySpawner::getJson()");
   Json::Value ret;
   switch(_spawnerType){
     case SpawnerType::EVEN_DISTROBUTION:
@@ -191,6 +196,7 @@ Json::Value EntitySpawner::getJson(){
 }
 
 shared_ptr<EntitySpawner> EntitySpawner::deepCopy(){
+  logger->trace("EntitySpawner::deepCopy()");
   shared_ptr<EntitySpawner> ret = make_shared<EntitySpawner>();
   ret->_entityType = _entityType;
   ret->_spawnerType = _spawnerType;
@@ -213,6 +219,7 @@ shared_ptr<EntitySpawner> EntitySpawner::deepCopy(){
 
 Map::Map()
 {
+  logger->trace("Map::Map()");
   std::time_t t = std::time(0);   // get time now
   std::tm* now = std::localtime(&t);
   string mon = to_string(now->tm_mon + 1);
@@ -235,10 +242,12 @@ Map::Map()
 
 Map::~Map()
 {
+  logger->trace("Map::~Map()");
   free();
 }
 
 bool Map::resetMap(){
+  logger->trace("Map::resetMap()");
   if(!_validConfig){
     cout << "Error: Cannot reset map, config not valid" << endl;
     return false;
@@ -285,6 +294,7 @@ bool Map::resetMap(){
 }
 
 void Map::populateMap(){
+  logger->trace("Map::populateMap()");
   vector<shared_ptr<Entity>> row = vector<shared_ptr<Entity>>(_sizeX);
   _map = vector<vector<shared_ptr<Entity>>>(_sizeY, row);
   for(shared_ptr<Carnivore> p: _carnivores)
@@ -296,6 +306,7 @@ void Map::populateMap(){
 }
 
 bool Map::loadMapSettings(string fileName){
+  logger->trace("Map::loadMapSettings({})", fileName);
   ifstream file(fileName);
   if(file.fail()){
     cout << "Error: could not open file " << fileName << endl;
@@ -315,6 +326,7 @@ bool Map::loadMapSettings(string fileName){
 }
 
 bool Map::loadMapSettings(Json::Value& json){
+  logger->trace("Map::loadMapSettings(json)");
   for(Json::Value::const_iterator itr = json.begin() ; itr != json.end() ; itr++){
     if(itr.key() == "defaultSpawner" && (*itr).isObject()){
     }else if(itr.key() == "entitySpawners" && (*itr).isArray()){
@@ -386,6 +398,7 @@ bool Map::loadMapSettings(Json::Value& json){
 }
 
 bool Map::tick(){
+  logger->trace("Map::tick()");
   if(!_validConfig || (pause && !oneStep))
     return _generationDone;
   if(!_mapSetUp || _generationDone)
@@ -407,6 +420,7 @@ bool Map::tick(){
 }
 
 void Map::draw(MapWindow& window){
+  logger->trace("Map::draw(window)");
   shared_ptr<Entity> selected;
   if(selectedEntityId >= 0){
     if(selectedEntityType == SelectableEntityType::SEL_PLANT){
@@ -431,6 +445,7 @@ void Map::draw(MapWindow& window){
 }
 
 Json::Value Map::getJson(){
+  logger->trace("Map::getJson()");
   Json::Value ret;
   ret["_name"] = Json::Value(_name);
   ret["_validConfig"] = Json::Value(_validConfig);
@@ -465,6 +480,7 @@ Json::Value Map::getJson(){
 }
 
 void Map::free(){
+  logger->trace("Map::free()");
   _validConfig = false;
   clearMap();
   _entitySpawners.clear();
@@ -472,6 +488,7 @@ void Map::free(){
 }
 
 void Map::clearMap(){
+  logger->trace("Map::clearMap()");
   _mapSetUp = false;
   _generationDone = false;
   _map.clear();
@@ -481,11 +498,13 @@ void Map::clearMap(){
 }
 
 void Map::clearBestAnimals(){
+  logger->trace("Map::clearBestAnimals()");
   _bestCarnivores.clear();
   _bestHerbivores.clear();
 }
 
 shared_ptr<uint8_t[]> Map::inputFromArea(int posX, int posY, int sensorRadius){
+  logger->trace("Map::inputFromArea({}, {}, {})", posX, posY, sensorRadius);
   int inputSize = INPUTS_PER_SQUARE * (sensorRadius * 2 + 1) * (sensorRadius * 2 + 1);
   shared_ptr<uint8_t[]> input = make_shared<uint8_t[]>(inputSize);
   int inputPos = 0;
@@ -518,6 +537,7 @@ shared_ptr<uint8_t[]> Map::inputFromArea(int posX, int posY, int sensorRadius){
 }
 
 void Map::inputFromSquare(int posX, int posY, shared_ptr<uint8_t[]> input, int inputPos){
+  logger->trace("Map::inputFromSquare({}, {}, input, {})", posX, posY, inputPos);
   if(!_map[posX][posY]){
     input[inputPos] = 255;
     input[inputPos+1] = 0;
@@ -542,6 +562,7 @@ void Map::inputFromSquare(int posX, int posY, shared_ptr<uint8_t[]> input, int i
 }
 
 void Map::decideAcitons(){
+  logger->trace("Map::decideAcitons()");
   for(shared_ptr<Carnivore> c: _carnivores)
     c->decideAction(inputFromArea(c->posX(), c->posY(), c->sensorRadius()));
   for(shared_ptr<Herbivore> h: _herbivores)
@@ -549,6 +570,7 @@ void Map::decideAcitons(){
 }
 
 void Map::performActions(){
+  logger->trace("Map::performActions()");
   for(shared_ptr<Carnivore> c: _carnivores)
     if(c->alive())
       c->performAction(_map);
@@ -559,6 +581,7 @@ void Map::performActions(){
 }
 
 void Map::removeDeadEntities(){
+  logger->trace("Map::removeDeadEntities()");
   for(int i=0; i<(int)_plants.size(); i++)
     if(!_plants[i]->alive())
       _plants.erase(_plants.begin()+i);
@@ -571,18 +594,21 @@ void Map::removeDeadEntities(){
 }
 
 void Map::saveBestCarnivores(){
+  logger->trace("Map::saveBestCarnivores()");
   _bestCarnivores.clear();
   for(shared_ptr<Carnivore> c: _carnivores)
     _bestCarnivores.push_back(make_shared<Carnivore>(*c));
 }
 
 void Map::saveBestHerbivores(){
+  logger->trace("Map::saveBestHerbivores()");
   _bestHerbivores.clear();
   for(shared_ptr<Herbivore> h: _herbivores)
     _bestHerbivores.push_back(make_shared<Herbivore>(*h));
 }
 
 void Map::output(string tab, OutputLevel level){
+  logger->trace("Map::output({}, {})", tab, (int)level);
   switch(level){
     case OutputLevel::OUTPUT_ONELINE:
     case OutputLevel::OUTPUT_ALL:
@@ -594,6 +620,7 @@ void Map::output(string tab, OutputLevel level){
 }
 
 shared_ptr<Entity> Map::getSelectedEntity(){
+  logger->trace("Map::getSelectedEntity()");
   shared_ptr<Entity> ret;
   if(_carnivores.size() + _herbivores.size() + _plants.size() + _bestCarnivores.size() + _bestHerbivores.size() == 0)
     return ret;
@@ -666,6 +693,7 @@ shared_ptr<Entity> Map::getSelectedEntity(){
 }
 
 shared_ptr<Map> Map::deepCopy(){
+  logger->trace("Map::deepCopy()");
   shared_ptr<Map> ret = make_shared<Map>();
   ret->_name = _name;
   ret->selectedEntityType = selectedEntityType;

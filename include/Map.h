@@ -1,5 +1,6 @@
 #ifndef MAP_H
 #define MAP_H
+#include "common.h"
 #include <iostream>
 #include "Graphics/SDLWindow.h"
 #include "Entities.h"

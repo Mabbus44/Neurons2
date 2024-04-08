@@ -2,15 +2,18 @@
 
 Entity::Entity()
 {
+  logger->trace("Entity::Entity()");
   //ctor
 }
 
 Entity::~Entity()
 {
+  logger->trace("Entity::~Entity()");
   //dtor
 }
 
 void Entity::load(const Json::Value& json){
+  logger->trace("Entity::load(json)");
   if(json["_posX"].isInt())
     _posX = (AnimalAction)json["_posX"].asInt();
   if(json["_posY"].isInt())
@@ -22,6 +25,7 @@ void Entity::load(const Json::Value& json){
 }
 
 Json::Value Entity::getJson(Json::Value ret){
+  logger->trace("Entity::getJson(ret)");
   ret["_posX"] = Json::Value(_posX);
   ret["_posY"] = Json::Value(_posY);
   ret["_entityType"] = Json::Value(_entityType);
@@ -30,6 +34,7 @@ Json::Value Entity::getJson(Json::Value ret){
 }
 
 shared_ptr<Entity> Entity::deepCopy(shared_ptr<Entity> ret){
+  logger->trace("Entity::deepCopy(ret)");
   ret->_posX = _posX;
   ret->_posY = _posY;
   ret->_entityType = _entityType;
@@ -39,6 +44,8 @@ shared_ptr<Entity> Entity::deepCopy(shared_ptr<Entity> ret){
 
 Animal::Animal(int x, int y, shared_ptr<Animal> rawModel, int sensorRadius, int energy, int maxEnergy, int energyCostMove, int energyCostEat,
            int energyCostNothing,int energyGainEat, int eatDist, int maxMutation) : Entity(x, y){
+  logger->trace("Animal::Animal({}, {}, rawModel, {}, {}, {}, {}, {}, {}, {}, {}, {})",
+                x, y, sensorRadius, energy, maxEnergy, energyCostMove, energyCostEat, energyCostNothing, energyGainEat, eatDist, maxMutation);
   _sensorRadius = sensorRadius;
   _energy = energy;
   _maxEnergy = maxEnergy;
@@ -52,6 +59,7 @@ Animal::Animal(int x, int y, shared_ptr<Animal> rawModel, int sensorRadius, int 
 }
 
 Animal::Animal(const Animal &other) : Entity(other){
+  logger->trace("Animal::Animal(other)");
   _sensorRadius = other._sensorRadius;
   _energy = other._energy;
   _maxEnergy = other._maxEnergy;
@@ -67,6 +75,7 @@ Animal::Animal(const Animal &other) : Entity(other){
 }
 
 void Animal::load(const Json::Value& json){
+  logger->trace("Animal::load(json)");
   Entity::load(json);
   if(json["_action"].isInt())
     _action = (AnimalAction)json["_action"].asInt();
@@ -108,6 +117,7 @@ void Animal::load(const Json::Value& json){
 }
 
 Json::Value Animal::getJson(Json::Value ret){
+  logger->trace("Animal::getJson(ret)");
   ret = Entity::getJson(ret);
   ret["_action"] = Json::Value(_action);
   ret["_sensorRadius"] = Json::Value(_sensorRadius);
@@ -140,6 +150,7 @@ void Animal::decideAction(shared_ptr<uint8_t[]> input){
 
   A positive actionWeight always beat a negative one.
   */
+  logger->trace("Animal::decideAction(input)");
   int factorId = 0;
   uint32_t highestActionWeight = 0;               // Weight of leading action
   uint32_t highestActionMultiplier = 1;           // Multiplier of leading actions weight (2^how many times it has won)
@@ -181,6 +192,7 @@ void Animal::decideAction(shared_ptr<uint8_t[]> input){
 
 void Animal::decideActionDeterministic(shared_ptr<uint8_t[]> input){
   // As long as inputSize < 2^16 (65536) we wont get overflow if input and factor are 8 bit, and result 32 bit.
+  logger->trace("Animal::decideActionDeterministic(input)");
   int factorId = 0;
   int32_t highestActionWeight = -2147483648;
   _action = (AnimalAction)0;
@@ -196,12 +208,14 @@ void Animal::decideActionDeterministic(shared_ptr<uint8_t[]> input){
 }
 
 void Animal::addEnergy(int newEnergy){
+  logger->trace("Animal::addEnergy({})", newEnergy);
   _energy += newEnergy;
   if(_energy > _maxEnergy)
     _energy = _maxEnergy;
 }
 
 bool Animal::removeEnergy(int lostEnergy, vector<vector<shared_ptr<Entity>>>& map){
+  logger->trace("Animal::removeEnergy({}, map)", lostEnergy);
   _energy -= lostEnergy;
   if(_energy <= 0){
     _energy = 0;
@@ -211,6 +225,7 @@ bool Animal::removeEnergy(int lostEnergy, vector<vector<shared_ptr<Entity>>>& ma
 }
 
 void Animal::init(shared_ptr<Animal> rawModel){
+  logger->trace("Animal::init(rawModel)");
   initInputAndFactorSize();
   if(!rawModel){
     for(int i=0; i<_factorSize; i++)
@@ -228,12 +243,14 @@ void Animal::init(shared_ptr<Animal> rawModel){
 }
 
 void Animal::initInputAndFactorSize(){
+  logger->trace("Animal::initInputAndFactorSize()");
   _inputSize = INPUTS_PER_SQUARE * (_sensorRadius * 2 + 1) * (_sensorRadius * 2 + 1);
   _factorSize = _inputSize * AnimalAction::COUNT;
   _factors = make_shared<uint8_t[]>(_factorSize);
 }
 
 void Animal::tryEat(vector<vector<shared_ptr<Entity>>>& map){
+  logger->trace("Animal::tryEat(map)");
   shared_ptr<Entity> prey;
   if(_entityType == EntityType::CARNIVORE)
     prey = findEntity(map, EntityType::HERBIVORE);
@@ -249,6 +266,7 @@ void Animal::tryEat(vector<vector<shared_ptr<Entity>>>& map){
 }
 
 shared_ptr<Entity> Animal::findEntity(vector<vector<shared_ptr<Entity>>>& map, EntityType entityType){
+  logger->trace("Animal::findEntity(map, entityType)");
   int posX = _posX;
   int posY = _posY;
   int sizeX = map.size();
@@ -306,6 +324,7 @@ shared_ptr<Entity> Animal::findEntity(vector<vector<shared_ptr<Entity>>>& map, E
 }
 
 void Animal::performAction(vector<vector<shared_ptr<Entity>>>& map){
+  logger->trace("Animal::performAction(map)");
   switch(_action){
     case AnimalAction::EAT:
       tryEat(map);
@@ -326,6 +345,7 @@ void Animal::performAction(vector<vector<shared_ptr<Entity>>>& map){
 }
 
 void Animal::movePos(vector<vector<shared_ptr<Entity>>>& map, AnimalAction moveAction){
+  logger->trace("Animal::movePos(map, moveAction)");
   int newPosX = _posX;
   int newPosY = _posY;
   shared_ptr<Entity> thisEntity = map[_posX][_posY];
@@ -366,6 +386,7 @@ void Animal::movePos(vector<vector<shared_ptr<Entity>>>& map, AnimalAction moveA
 }
 
 shared_ptr<Animal> Animal::deepCopy(shared_ptr<Animal> ret){
+  logger->trace("Animal::deepCopy(ret)");
   Entity::deepCopy(dynamic_pointer_cast<Entity>(ret));
   ret->_action = _action;
   ret->_sensorRadius = _sensorRadius;
@@ -388,10 +409,13 @@ shared_ptr<Animal> Animal::deepCopy(shared_ptr<Animal> ret){
 Carnivore::Carnivore(int x, int y, shared_ptr<Carnivore> rawModel, int sensorRadius, int energy, int maxEnergy, int energyCostMove, int energyCostEat,
             int energyCostNothing,int energyGainEat, int eatDist, int maxMutation) : Animal(x, y, rawModel, sensorRadius, energy, maxEnergy,
             energyCostMove, energyCostEat, energyCostNothing, energyGainEat, eatDist, maxMutation){
+  logger->trace("Carnivore::Carnivore({}, {}, rawModel, {}, {}, {}, {}, {}, {}, {}, {}, {}",
+                x, y, sensorRadius, energy, maxEnergy, energyCostMove, energyCostEat, energyCostNothing, energyGainEat, eatDist, maxMutation);
   _entityType = EntityType::CARNIVORE;
 }
 
 shared_ptr<Carnivore> Carnivore::deepCopy(){
+  logger->trace("Carnivore::deepCopy()");
   shared_ptr<Carnivore> ret = make_shared<Carnivore>();
   Animal::deepCopy(dynamic_pointer_cast<Animal>(ret));
   return ret;
@@ -400,16 +424,20 @@ shared_ptr<Carnivore> Carnivore::deepCopy(){
 Herbivore::Herbivore(int x, int y, shared_ptr<Herbivore> rawModel, int sensorRadius, int energy, int maxEnergy, int energyCostMove, int energyCostEat,
             int energyCostNothing,int energyGainEat, int eatDist, int maxMutation) : Animal(x, y, rawModel, sensorRadius, energy, maxEnergy,
             energyCostMove, energyCostEat, energyCostNothing, energyGainEat, eatDist, maxMutation){
+  logger->trace("Herbivore::Herbivore({}, {}, rawModel, {}, {}, {}, {}, {}, {}, {}, {}, {}",
+                x, y, sensorRadius, energy, maxEnergy, energyCostMove, energyCostEat, energyCostNothing, energyGainEat, eatDist, maxMutation);
   _entityType = EntityType::HERBIVORE;
 }
 
 shared_ptr<Herbivore> Herbivore::deepCopy(){
+  logger->trace("Herbivore::deepCopy()");
   shared_ptr<Herbivore> ret = make_shared<Herbivore>();
   Animal::deepCopy(dynamic_pointer_cast<Animal>(ret));
   return ret;
 }
 
 shared_ptr<Plant> Plant::deepCopy(){
+  logger->trace("Plant::deepCopy()");
   shared_ptr<Plant> ret = make_shared<Plant>();
   Entity::deepCopy(dynamic_pointer_cast<Entity>(ret));
   return ret;
