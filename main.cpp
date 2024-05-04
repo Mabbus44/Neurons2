@@ -7,8 +7,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <iostream>
-
-using namespace std;
+#include "Algebra.h"
 
 int main( int argc, char* args2[] )
 {

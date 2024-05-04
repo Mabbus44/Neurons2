@@ -2,6 +2,7 @@
 #define COMMON_H
 
 #include "spdlog/sinks/rotating_file_sink.h"
+#include "Constants.h"
 
 // Logger used in all files except ConsoleHandler.h/.cpp (since that one is run async).
 // Actual defenition is done in Hub.cpp

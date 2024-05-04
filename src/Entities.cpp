@@ -319,6 +319,9 @@ shared_ptr<Entity> Animal::findEntity(vector<vector<shared_ptr<Entity>>>& map, E
     case EntityType::PLANT:{
       return shared_ptr<Plant>();
       break;}
+    case EntityType::WATER:{
+      return shared_ptr<Water>();
+      break;}
   }
   return shared_ptr<Entity>();
 }
@@ -439,6 +442,13 @@ shared_ptr<Herbivore> Herbivore::deepCopy(){
 shared_ptr<Plant> Plant::deepCopy(){
   logger->trace("Plant::deepCopy()");
   shared_ptr<Plant> ret = make_shared<Plant>();
+  Entity::deepCopy(dynamic_pointer_cast<Entity>(ret));
+  return ret;
+}
+
+shared_ptr<Water> Water::deepCopy(){
+  logger->trace("Water::deepCopy()");
+  shared_ptr<Water> ret = make_shared<Water>();
   Entity::deepCopy(dynamic_pointer_cast<Entity>(ret));
   return ret;
 }

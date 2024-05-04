@@ -42,9 +42,11 @@
 			<Add directory="C:/SDLLib64/lib" />
 			<Add directory="C:/SDLTTFLib64/lib" />
 		</Linker>
+		<Unit filename="include/Algebra.h" />
 		<Unit filename="include/Common.h" />
 		<Unit filename="include/Constants.h" />
 		<Unit filename="include/Entities.h" />
+		<Unit filename="include/EntitySpawner.h" />
 		<Unit filename="include/Graphics/ConsoleHandler.h" />
 		<Unit filename="include/Graphics/Hub.h" />
 		<Unit filename="include/Graphics/SDLWindow.h" />
@@ -52,7 +54,9 @@
 		<Unit filename="include/json/json-forwards.h" />
 		<Unit filename="include/json/json.h" />
 		<Unit filename="main.cpp" />
+		<Unit filename="src/Algebra.cpp" />
 		<Unit filename="src/Entities.cpp" />
+		<Unit filename="src/EntitySpawner.cpp" />
 		<Unit filename="src/Graphics/ConsoleHandler.cpp" />
 		<Unit filename="src/Graphics/Hub.cpp" />
 		<Unit filename="src/Graphics/SDLWindow.cpp" />

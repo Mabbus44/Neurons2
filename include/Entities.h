@@ -1,7 +1,6 @@
 #ifndef ENTITIES_H
 #define ENTITIES_H
 #include "common.h"
-#include "Constants.h"
 #include <vector>
 #include <iostream>
 #include <stdlib.h>
@@ -114,6 +113,19 @@ class Plant: public Entity
     Plant(int x, int y) : Entity(x, y){_entityType = EntityType::PLANT;}
     virtual ~Plant(){}
     shared_ptr<Plant> deepCopy();
+
+  protected:
+
+  private:
+};
+
+class Water: public Entity
+{
+  public:
+    Water(){_entityType = EntityType::WATER;}
+    Water(int x, int y) : Entity(x, y){_entityType = EntityType::WATER;}
+    virtual ~Water(){}
+    shared_ptr<Water> deepCopy();
 
   protected:
 

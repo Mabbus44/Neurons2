@@ -1,222 +1,5 @@
 #include "Map.h"
 
-bool EntitySpawner::loadSettings(Json::Value& input, int mapSizeX, int mapSizeY){
-  logger->trace("EntitySpawner::loadSettings(input, {}, {})", mapSizeX, mapSizeY);
-  for(Json::Value::const_iterator itr = input.begin() ; itr != input.end() ; itr++){
-    if(itr.key() == "spawnerType" && (*itr).isString()){
-      if((*itr).asString() == "evenDistribution")
-        _spawnerType = SpawnerType::EVEN_DISTROBUTION;
-      else
-        cout << "Warning: Invalid value {" << *itr << "} for key {" << itr.key() << "} in spawner settings" << endl;
-    }else if(itr.key() == "entityType" && (*itr).isString()){
-      if((*itr).asString() == "carnivore")
-        _entityType = EntityType::CARNIVORE;
-      else if((*itr).asString() == "herbivore")
-        _entityType = EntityType::HERBIVORE;
-      else if((*itr).asString() == "plant")
-        _entityType = EntityType::PLANT;
-      else
-        cout << "Warning: Invalid value {" << *itr << "} for key {" << itr.key() << "} in spawner settings" << endl;
-    }else if(itr.key() == "entityCount" && (*itr).isIntegral()){
-      _entityCount = (*itr).asInt();
-    }else if(itr.key() == "minX" && (*itr).isIntegral()){
-      _minX = (*itr).asInt();
-    }else if(itr.key() == "minY" && (*itr).isIntegral()){
-      _minY = (*itr).asInt();
-    }else if(itr.key() == "maxX" && (*itr).isIntegral()){
-      _maxX = (*itr).asInt();
-      if(_maxX == -1)
-        _maxX = mapSizeX-1;
-    }else if(itr.key() == "maxY" && (*itr).isIntegral()){
-      _maxY = (*itr).asInt();
-      if(_maxY == -1)
-        _maxY = mapSizeY-1;
-    }else if(itr.key() == "sensorRadius" && (*itr).isIntegral()){
-
-      /*
-      factors and inputs are 8bit (unsigned).
-      actionWeight is 32 bit
-      1 bit is lost to sign
-      actionWeight += ((_factors[factorId])-128) * (input[inputId])
-      each addition is maximum a 16 bit number (unsigned)
-
-      factorCount can maximum be a 32-1-16 = 15 bits (unsigned), so 2^15 = 32768
-      for INPUTS_PER_SQURE = 4 that means _sensorRadius can be maximum 44
-
-      factorCount = INPUTS_PER_SQUARE * (_sensorRadius * 2 + 1) * (_sensorRadius * 2 + 1)
-
-      Since we do _factors[]-128 that one is really just 7 bits, so 2^16 = 65536 and _sensorRadius = 63.
-      But I havent checked edge cases, so 2^15 is still plenty
-      */
-      _sensorRadius = (*itr).asInt();
-      uint32_t inputSize = INPUTS_PER_SQUARE * (_sensorRadius * 2 + 1) * (_sensorRadius * 2 + 1);
-      uint32_t factorSize = inputSize * AnimalAction::COUNT;
-      if(factorSize >= 32768){
-        cout << "Warning: FactorCount is " << factorSize << ", which is larger then 2^15, possible overflow in actionWeight calculation" << endl;
-      }
-    }else if(itr.key() == "maxEnergy" && (*itr).isIntegral()){
-      _maxEnergy = (*itr).asInt();
-    }else if(itr.key() == "startEnergy" && (*itr).isIntegral()){
-      _startEnergy = (*itr).asInt();
-    }else if(itr.key() == "energyCostMove" && (*itr).isIntegral()){
-      _energyCostMove = (*itr).asInt();
-    }else if(itr.key() == "energyCostEat" && (*itr).isIntegral()){
-      _energyCostEat = (*itr).asInt();
-    }else if(itr.key() == "energyCostNothing" && (*itr).isIntegral()){
-      _energyCostNothing = (*itr).asInt();
-    }else if(itr.key() == "energyGainEat" && (*itr).isIntegral()){
-      _energyGainEat = (*itr).asInt();
-    }else if(itr.key() == "eatDist" && (*itr).isIntegral()){
-      _eatDist = (*itr).asInt();
-    }else if(itr.key() == "maxMutation" && (*itr).isIntegral()){
-      _maxMutation = (*itr).asInt();
-    }else{
-      cout << "Warning: Invalid key {" << itr.key() << "} in spawner settings" << endl;
-    }
-  }
-  return true;
-}
-
-void EntitySpawner::addCarnivores(vector<shared_ptr<Carnivore>>& entities, vector<shared_ptr<Carnivore>>& rawModels, int& rawModelId, vector<vector<shared_ptr<Entity>>>& map){
-  logger->trace("EntitySpawner::addCarnivores(entities, rawModels, {}, map)", rawModelId);
-  int posX, posY;
-  for(int eId=0; eId < _entityCount; eId++){
-    int retries = 0;
-    bool spotFree = false;
-    while(!spotFree && retries < 3){
-      posX = _minX + (rand() % sizeX());
-      posY = _minY + (rand() % sizeY());
-      if(!map[posX][posY])
-        spotFree = true;
-      else
-        retries++;
-    }
-    if(spotFree){
-      shared_ptr<Entity> entity;
-      rawModelId++;
-      if(rawModelId >= (int)rawModels.size())
-        rawModelId = 0;
-      shared_ptr<Carnivore> baseEntity;
-      if((int)rawModels.size() > 0)
-        baseEntity = rawModels[rawModelId];
-      entity = make_shared<Carnivore>(posX, posY, baseEntity, _sensorRadius, _startEnergy, _maxEnergy, _energyCostMove, _energyCostEat,
-                                      _energyCostNothing, _energyGainEat, _eatDist, _maxMutation);
-      entities.push_back(dynamic_pointer_cast<Carnivore>(entity));
-      map[posX][posY] = entity;
-    }
-  }
-}
-
-void EntitySpawner::addHerbivores(vector<shared_ptr<Herbivore>>& entities, vector<shared_ptr<Herbivore>>& rawModels, int& rawModelId, vector<vector<shared_ptr<Entity>>>& map){
-  logger->trace("EntitySpawner::addHerbivores(entities, rawModels, {}, map)", rawModelId);
-  int posX, posY;
-  for(int eId=0; eId < _entityCount; eId++){
-    int retries = 0;
-    bool spotFree = false;
-    while(!spotFree && retries < 3){
-      posX = _minX + (rand() % sizeX());
-      posY = _minY + (rand() % sizeY());
-      if(!map[posX][posY])
-        spotFree = true;
-      else
-        retries++;
-    }
-    if(spotFree){
-      shared_ptr<Entity> entity;
-      rawModelId++;
-      if(rawModelId >= (int)rawModels.size())
-        rawModelId = 0;
-      shared_ptr<Herbivore> baseEntity;
-      if((int)rawModels.size() > 0)
-        baseEntity = rawModels[rawModelId];
-      entity = make_shared<Herbivore>(posX, posY, baseEntity, _sensorRadius, _startEnergy, _maxEnergy, _energyCostMove, _energyCostEat,
-                                      _energyCostNothing, _energyGainEat, _eatDist, _maxMutation);
-      entities.push_back(dynamic_pointer_cast<Herbivore>(entity));
-      map[posX][posY] = entity;
-    }
-  }
-}
-
-void EntitySpawner::addPlants(vector<shared_ptr<Plant>>& entities, vector<vector<shared_ptr<Entity>>>& map){
-  logger->trace("EntitySpawner::addPlants(entities, map)");
-  int posX, posY;
-  for(int eId=0; eId < _entityCount; eId++){
-    int retries = 0;
-    bool spotFree = false;
-    while(!spotFree && retries < 3){
-      posX = _minX + (rand() % sizeX());
-      posY = _minY + (rand() % sizeY());
-      if(!map[posX][posY])
-        spotFree = true;
-      else
-        retries++;
-    }
-    if(spotFree){
-      shared_ptr<Entity> entity = make_shared<Plant>(posX, posY);
-      entities.push_back(dynamic_pointer_cast<Plant>(entity));
-      map[posX][posY] = entity;
-    }
-  }
-}
-
-Json::Value EntitySpawner::getJson(){
-  logger->trace("EntitySpawner::getJson()");
-  Json::Value ret;
-  switch(_spawnerType){
-    case SpawnerType::EVEN_DISTROBUTION:
-      ret["spawnerType"] = Json::Value("evenDistribution");
-      break;
-  }
-  switch(_entityType){
-    case EntityType::CARNIVORE:
-      ret["entityType"] = Json::Value("carnivore");
-      break;
-    case EntityType::HERBIVORE:
-      ret["entityType"] = Json::Value("herbivore");
-      break;
-    case EntityType::PLANT:
-      ret["entityType"] = Json::Value("plant");
-      break;
-  }
-  ret["entityCount"] = Json::Value(_entityCount);
-  ret["minX"] = Json::Value(_minX);
-  ret["minY"] = Json::Value(_minY);
-  ret["maxX"] = Json::Value(_maxX);
-  ret["maxY"] = Json::Value(_maxY);
-  ret["sensorRadius"] = Json::Value(_sensorRadius);
-  ret["maxEnergy"] = Json::Value(_maxEnergy);
-  ret["startEnergy"] = Json::Value(_startEnergy);
-  ret["energyCostMove"] = Json::Value(_energyCostMove);
-  ret["energyCostEat"] = Json::Value(_energyCostEat);
-  ret["energyCostNothing"] = Json::Value(_energyCostNothing);
-  ret["energyGainEat"] = Json::Value(_energyGainEat);
-  ret["eatDist"] = Json::Value(_eatDist);
-  ret["maxMutation"] = Json::Value(_maxMutation);
-  return ret;
-}
-
-shared_ptr<EntitySpawner> EntitySpawner::deepCopy(){
-  logger->trace("EntitySpawner::deepCopy()");
-  shared_ptr<EntitySpawner> ret = make_shared<EntitySpawner>();
-  ret->_entityType = _entityType;
-  ret->_spawnerType = _spawnerType;
-  ret->_entityCount = _entityCount;
-  ret->_minX = _minX;
-  ret->_minY = _minY;
-  ret->_maxX = _maxX;
-  ret->_maxY = _maxY;
-  ret->_sensorRadius = _sensorRadius;
-  ret->_maxEnergy = _maxEnergy;
-  ret->_startEnergy = _startEnergy;
-  ret->_energyCostMove = _energyCostMove;
-  ret->_energyCostEat = _energyCostEat;
-  ret->_energyCostNothing = _energyCostNothing;
-  ret->_energyGainEat = _energyGainEat;
-  ret->_eatDist = _eatDist;
-  ret->_maxMutation = _maxMutation;
-  return ret;
-}
-
 Map::Map()
 {
   logger->trace("Map::Map()");
@@ -275,9 +58,16 @@ bool Map::resetMap(){
   _herbivores.reserve(herbivoreCount);
   _plants = vector<shared_ptr<Plant>>();
   _plants.reserve(plantCount);
+  _water = vector<shared_ptr<Water>>();
 
   int bestCarnivoreId = 0;
   int bestHerbivoreId = 0;
+  for(shared_ptr<EntitySpawner> spawner: _entitySpawners){
+    spawner->generatePointCloud();
+    if(spawner->entityType() == EntityType::WATER){
+      spawner->addWater(_water, _map);
+    }
+  }
   for(shared_ptr<EntitySpawner> spawner: _entitySpawners){
     if(spawner->entityType() == EntityType::CARNIVORE){
       spawner->addCarnivores(_carnivores, _bestCarnivores, bestCarnivoreId, _map);
@@ -297,6 +87,8 @@ void Map::populateMap(){
   logger->trace("Map::populateMap()");
   vector<shared_ptr<Entity>> row = vector<shared_ptr<Entity>>(_sizeX);
   _map = vector<vector<shared_ptr<Entity>>>(_sizeY, row);
+  for(shared_ptr<Water> p: _water)
+    _map[p->posX()][p->posY()] = p;
   for(shared_ptr<Carnivore> p: _carnivores)
     _map[p->posX()][p->posY()] = p;
   for(shared_ptr<Herbivore> p: _herbivores)
@@ -367,6 +159,11 @@ bool Map::loadMapSettings(Json::Value& json){
         _plants.push_back(make_shared<Plant>());
         _plants.back()->load((*itr)[entityId]);
       }
+    }else if(itr.key() == "_water" && (*itr).isArray()){
+      for(Json::Value::ArrayIndex entityId = 0; entityId < (*itr).size(); entityId++){
+        _water.push_back(make_shared<Water>());
+        _water.back()->load((*itr)[entityId]);
+      }
     }else if(itr.key() == "_bestCarnivores" && (*itr).isArray()){
       for(Json::Value::ArrayIndex entityId = 0; entityId < (*itr).size(); entityId++){
         _bestCarnivores.push_back(make_shared<Carnivore>());
@@ -383,12 +180,12 @@ bool Map::loadMapSettings(Json::Value& json){
   }
   shared_ptr<EntitySpawner> _defaultSpawner = make_shared<EntitySpawner>();
   if(json.isMember("defaultSpawner") && json["defaultSpawner"].isObject()){
-    _defaultSpawner->loadSettings(json["defaultSpawner"], _sizeX, _sizeY);
+    _defaultSpawner->loadSettings(json["defaultSpawner"], _sizeX-1, _sizeY-1);
   }
   if(json.isMember("entitySpawners") && json["entitySpawners"].isArray()){
     for(Json::Value::ArrayIndex spawnerId = 0; spawnerId < (json["entitySpawners"]).size(); spawnerId++){
       shared_ptr<EntitySpawner> e = make_shared<EntitySpawner>(*_defaultSpawner);
-      if(e->loadSettings((json["entitySpawners"])[spawnerId], _sizeX, _sizeY))
+      if(e->loadSettings((json["entitySpawners"])[spawnerId], _sizeX-1, _sizeY-1))
         _entitySpawners.push_back(e);
     }
   }
@@ -439,9 +236,11 @@ void Map::draw(MapWindow& window){
   for(shared_ptr<Entity> e : _plants)
     window.drawPixel(e->posX(), e->posY(), 0, 0x44, 0, e == selected);
   for(shared_ptr<Entity> e : _herbivores)
-    window.drawPixel(e->posX(), e->posY(), 0, 0, 0xFF, e == selected);
+    window.drawPixel(e->posX(), e->posY(), 0xFF, 0, 0xFF, e == selected);
   for(shared_ptr<Entity> e : _carnivores)
     window.drawPixel(e->posX(), e->posY(), 0x88, 0, 0, e == selected);
+  for(shared_ptr<Entity> e : _water)
+    window.drawPixel(e->posX(), e->posY(), 0, 0, 0xFF, e == selected);
 }
 
 Json::Value Map::getJson(){
@@ -470,6 +269,8 @@ Json::Value Map::getJson(){
     ret["_herbivores"].append(p->getJson());
   for(shared_ptr<Plant> p: _plants)
     ret["_plants"].append(p->getJson());
+  for(shared_ptr<Water> p: _water)
+    ret["_water"].append(p->getJson());
   for(shared_ptr<Carnivore> p: _bestCarnivores)
     ret["_bestCarnivores"].append(p->getJson());
   for(shared_ptr<Herbivore> p: _bestHerbivores)
@@ -543,21 +344,31 @@ void Map::inputFromSquare(int posX, int posY, shared_ptr<uint8_t[]> input, int i
     input[inputPos+1] = 0;
     input[inputPos+2] = 0;
     input[inputPos+3] = 0;
+    input[inputPos+4] = 0;
   }else if(_map[posX][posY]->entityType() == EntityType::CARNIVORE){
     input[inputPos] = 0;
     input[inputPos+1] = 255;
     input[inputPos+2] = 0;
     input[inputPos+3] = 0;
+    input[inputPos+4] = 0;
   }else if(_map[posX][posY]->entityType() == EntityType::HERBIVORE){
     input[inputPos] = 0;
     input[inputPos+1] = 0;
     input[inputPos+2] = 255;
     input[inputPos+3] = 0;
+    input[inputPos+4] = 0;
   }else if(_map[posX][posY]->entityType() == EntityType::PLANT){
     input[inputPos] = 0;
     input[inputPos+1] = 0;
     input[inputPos+2] = 0;
     input[inputPos+3] = 255;
+    input[inputPos+4] = 0;
+  }else if(_map[posX][posY]->entityType() == EntityType::WATER){
+    input[inputPos] = 0;
+    input[inputPos+1] = 0;
+    input[inputPos+2] = 0;
+    input[inputPos+3] = 0;
+    input[inputPos+4] = 255;
   }
 }
 

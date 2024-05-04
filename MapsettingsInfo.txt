@@ -8,10 +8,19 @@
 		"spawnerType": "evenDistribution",							//How entities are spawned in area {"evenDistribution"}.
 		"entityType": "carnivore",											//Type of entity {"carnivore", "herbivore", "plant"}.
 		"entityCount": 10,															//Amount of entities to spawn in the area.
-		"minX": 0,																			//Bounds of the area. May not excede map size.
-		"minY": 0,																			//Bounds of the area. May not excede map size.
-		"maxX": -1,																			//Bounds of the area. May not excede map size. -1 means upper map bound.
-		"maxY": -1																			//Bounds of the area. May not excede map size. -1 means upper map bound.
+		"shapes": [{																		//Shape that entity will be spawned in
+			"type": "rectangle",													//Rectangle shape
+			"line":{																			//Line forming one side of the rectangle. Order of points changes direction of "width"
+				"p1": {"x": 0, "y": 0},											//First point of line
+				"p2": {"x": 199, "y": 0}										//Second point of line
+			},
+			"width": 200																	//Other side of rectangle will be perpendicular to the first side, with this length
+		},{
+			"type": "circle",															//Circle shape
+			"center":{"x": 100, "y": 100},								//Center point of circle
+			"radius": 65,																	//Radius of circle
+			"negative": true															//Removes this shape from spawner area instead of adding it. Optional. Available for all shape types
+		}],
 		"sensorRadius": 5,															//Distance around entity that it gather inputs.
 		"eatDist": 2,																		//Distance a entity can eat a prey from.
 		"maxMutation": 10,															//Maximum change in factor that an offspring can get relative to parent. Scale is 0-255.

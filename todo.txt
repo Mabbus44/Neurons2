@@ -1,14 +1,17 @@
 TODO
-* Add water (impassable)
 * Grass spread every x ticks
 * Add energyLevel as input
 * Animals cant eat when full
 * Add animal action "Mate" (Create new offspring on the fly), and an ageing value (die after x steps)
+* Add legend to neurons windows factors display
 
 Bugs
 * Randomly crashes after a good while since I added random element in action choise (have not happend when I didnt open window yet, but might be a conicidence)
 
 Done todo
+* Add water (impassable)
+* Add ability to specify areas in config not only as rectangles, but also as rotated rectangles and circles
+* Add ability to add negative fields to areas, where that field will be considered outside the area
 * Add logging to file
 * Put random element in action choise for animal
 * Change what info are shown for maps

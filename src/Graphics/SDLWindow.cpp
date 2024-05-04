@@ -223,7 +223,7 @@ void NeuronsWindow::prepareRender(){
       }
       drawText(x,y+85, "Energy:", {0xFF, 0xFF, 0xFF},15);
       drawText(x+66,y+85, to_string(animal->energy()), {0xFF, 0xFF, 0xFF},15);
-      drawText(x,y+101, "Factors:  Empty      Carni      Herbi       Plant", {0xFF, 0xFF, 0xFF},15);
+      drawText(x,y+101, "Factors:  Empty      Carni      Herbi       Plant        Water", {0xFF, 0xFF, 0xFF},15);
       drawText(x,y+133, "Nothing", {0xFF, 0xFF, 0xFF},15);
       drawText(x,y+197, "Up", {0xFF, 0xFF, 0xFF},15);
       drawText(x,y+261, "Down", {0xFF, 0xFF, 0xFF},15);

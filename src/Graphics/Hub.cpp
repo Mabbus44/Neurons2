@@ -7,7 +7,7 @@ Hub::Hub()
   auto max_size = 1024*1024*50;
   auto max_files = 3;
   logger = spdlog::rotating_logger_st("logger", "logs/log.txt", max_size, max_files);
-  logger->set_level(spdlog::level::debug);
+  logger->set_level(DEBUG_LEVEL);
   logger->debug("Logging started");
 }
 
