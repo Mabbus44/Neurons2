@@ -21,6 +21,8 @@ Map::Map()
   if(sec.length() == 1)
     sec = "0" + sec;
   _name = to_string(now->tm_year + 1900) + mon + day + " " + hour + ":" + min + ":" + sec;
+  _plantPrototype = make_shared<Plant>();
+  _waterPrototype = make_shared<Water>();
 }
 
 Map::~Map()
@@ -56,16 +58,13 @@ bool Map::resetMap(){
   _carnivores.reserve(carnivoreCount);
   _herbivores = vector<shared_ptr<Herbivore>>();
   _herbivores.reserve(herbivoreCount);
-  _plants = vector<shared_ptr<Plant>>();
-  _plants.reserve(plantCount);
-  _water = vector<shared_ptr<Water>>();
 
   int bestCarnivoreId = 0;
   int bestHerbivoreId = 0;
   for(shared_ptr<EntitySpawner> spawner: _entitySpawners){
     spawner->generatePointCloud();
     if(spawner->entityType() == EntityType::WATER){
-      spawner->addWater(_water, _map);
+      spawner->addWater(_waterPrototype ,_map);
     }
   }
   for(shared_ptr<EntitySpawner> spawner: _entitySpawners){
@@ -74,27 +73,13 @@ bool Map::resetMap(){
     }else if(spawner->entityType() == EntityType::HERBIVORE){
       spawner->addHerbivores(_herbivores, _bestHerbivores, bestHerbivoreId, _map);
     }else if(spawner->entityType() == EntityType::PLANT){
-      spawner->addPlants(_plants, _map);
+      spawner->addPlants(_plantPrototype ,_map);
     }
   }
   clearBestAnimals();
   _mapSetUp = true;
   _tickCount = 0;
   return true;
-}
-
-void Map::populateMap(){
-  logger->trace("Map::populateMap()");
-  vector<shared_ptr<Entity>> row = vector<shared_ptr<Entity>>(_sizeX);
-  _map = vector<vector<shared_ptr<Entity>>>(_sizeY, row);
-  for(shared_ptr<Water> p: _water)
-    _map[p->posX()][p->posY()] = p;
-  for(shared_ptr<Carnivore> p: _carnivores)
-    _map[p->posX()][p->posY()] = p;
-  for(shared_ptr<Herbivore> p: _herbivores)
-    _map[p->posX()][p->posY()] = p;
-  for(shared_ptr<Plant> p: _plants)
-    _map[p->posX()][p->posY()] = p;
 }
 
 bool Map::loadMapSettings(string fileName){
@@ -119,6 +104,8 @@ bool Map::loadMapSettings(string fileName){
 
 bool Map::loadMapSettings(Json::Value& json){
   logger->trace("Map::loadMapSettings(json)");
+  vector<shared_ptr<Entity>> row = vector<shared_ptr<Entity>>(_sizeX);
+  _map = vector<vector<shared_ptr<Entity>>>(_sizeY, row);
   for(Json::Value::const_iterator itr = json.begin() ; itr != json.end() ; itr++){
     if(itr.key() == "defaultSpawner" && (*itr).isObject()){
     }else if(itr.key() == "entitySpawners" && (*itr).isArray()){
@@ -148,21 +135,21 @@ bool Map::loadMapSettings(Json::Value& json){
       for(Json::Value::ArrayIndex entityId = 0; entityId < (*itr).size(); entityId++){
         _carnivores.push_back(make_shared<Carnivore>());
         _carnivores.back()->load((*itr)[entityId]);
+        _map[_carnivores.back()->posY()][_carnivores.back()->posX()] = _carnivores.back();
       }
     }else if(itr.key() == "_herbivores" && (*itr).isArray()){
       for(Json::Value::ArrayIndex entityId = 0; entityId < (*itr).size(); entityId++){
         _herbivores.push_back(make_shared<Herbivore>());
         _herbivores.back()->load((*itr)[entityId]);
+        _map[_herbivores.back()->posY()][_herbivores.back()->posX()] = _herbivores.back();
       }
     }else if(itr.key() == "_plants" && (*itr).isArray()){
       for(Json::Value::ArrayIndex entityId = 0; entityId < (*itr).size(); entityId++){
-        _plants.push_back(make_shared<Plant>());
-        _plants.back()->load((*itr)[entityId]);
+        _map[(*itr)[entityId]["y"].asInt()][(*itr)[entityId]["x"].asInt()] = _plantPrototype;
       }
     }else if(itr.key() == "_water" && (*itr).isArray()){
       for(Json::Value::ArrayIndex entityId = 0; entityId < (*itr).size(); entityId++){
-        _water.push_back(make_shared<Water>());
-        _water.back()->load((*itr)[entityId]);
+        _map[(*itr)[entityId]["y"].asInt()][(*itr)[entityId]["x"].asInt()] = _waterPrototype;
       }
     }else if(itr.key() == "_bestCarnivores" && (*itr).isArray()){
       for(Json::Value::ArrayIndex entityId = 0; entityId < (*itr).size(); entityId++){
@@ -189,7 +176,6 @@ bool Map::loadMapSettings(Json::Value& json){
         _entitySpawners.push_back(e);
     }
   }
-  populateMap();
   _validConfig = true;
   return _validConfig;
 }
@@ -220,10 +206,6 @@ void Map::draw(MapWindow& window){
   logger->trace("Map::draw(window)");
   shared_ptr<Entity> selected;
   if(selectedEntityId >= 0){
-    if(selectedEntityType == SelectableEntityType::SEL_PLANT){
-      if(selectedEntityId < (int)_plants.size())
-        selected = _plants[selectedEntityId];
-    }
     if(selectedEntityType == SelectableEntityType::SEL_HERBIVORE){
       if(selectedEntityId < (int)_herbivores.size())
         selected = _herbivores[selectedEntityId];
@@ -233,14 +215,20 @@ void Map::draw(MapWindow& window){
         selected = _carnivores[selectedEntityId];
     }
   }
-  for(shared_ptr<Entity> e : _plants)
-    window.drawPixel(e->posX(), e->posY(), 0, 0x44, 0, e == selected);
-  for(shared_ptr<Entity> e : _herbivores)
-    window.drawPixel(e->posX(), e->posY(), 0xFF, 0, 0xFF, e == selected);
-  for(shared_ptr<Entity> e : _carnivores)
-    window.drawPixel(e->posX(), e->posY(), 0x88, 0, 0, e == selected);
-  for(shared_ptr<Entity> e : _water)
-    window.drawPixel(e->posX(), e->posY(), 0, 0, 0xFF, e == selected);
+  for(int y = 0; y < _sizeY; y++){
+    for(int x = 0; x < _sizeX; x++){
+      if(_map[y][x] != nullptr){
+        if(_map[y][x]->entityType() == EntityType::PLANT)
+          window.drawPixel(x, y, 0, 0x44, 0, _map[y][x] == selected);
+        if(_map[y][x]->entityType() == EntityType::HERBIVORE)
+          window.drawPixel(x, y, 0xFF, 0, 0xFF, _map[y][x] == selected);
+        if(_map[y][x]->entityType() == EntityType::CARNIVORE)
+          window.drawPixel(x, y, 0x88, 0, 0, _map[y][x] == selected);
+        if(_map[y][x]->entityType() == EntityType::WATER)
+          window.drawPixel(x, y, 0, 0, 0xFF, _map[y][x] == selected);
+      }
+    }
+  }
 }
 
 Json::Value Map::getJson(){
@@ -260,6 +248,7 @@ Json::Value Map::getJson(){
   ret["_carnivores"] = Json::Value(Json::arrayValue);
   ret["_herbivores"] = Json::Value(Json::arrayValue);
   ret["_plants"] = Json::Value(Json::arrayValue);
+  ret["_water"] = Json::Value(Json::arrayValue);
   ret["_bestCarnivores"] = Json::Value(Json::arrayValue);
   ret["_bestHerbivores"] = Json::Value(Json::arrayValue);
   ret["entitySpawners"] = Json::Value(Json::arrayValue);
@@ -267,10 +256,22 @@ Json::Value Map::getJson(){
     ret["_carnivores"].append(p->getJson());
   for(shared_ptr<Herbivore> p: _herbivores)
     ret["_herbivores"].append(p->getJson());
-  for(shared_ptr<Plant> p: _plants)
-    ret["_plants"].append(p->getJson());
-  for(shared_ptr<Water> p: _water)
-    ret["_water"].append(p->getJson());
+  for(int y = 0; y < _sizeY; y++){
+    for(int x = 0; x < _sizeX; x++){
+      if(_map[y][x] != nullptr && _map[y][x]->entityType() == EntityType::PLANT){
+        Json::Value coord;
+        coord["x"] = Json::Value(x);
+        coord["y"] = Json::Value(y);
+        ret["_plants"].append(coord);
+      }
+      if(_map[y][x] != nullptr && _map[y][x]->entityType() == EntityType::WATER){
+        Json::Value coord;
+        coord["x"] = Json::Value(x);
+        coord["y"] = Json::Value(y);
+        ret["_water"].append(coord);
+      }
+    }
+  }
   for(shared_ptr<Carnivore> p: _bestCarnivores)
     ret["_bestCarnivores"].append(p->getJson());
   for(shared_ptr<Herbivore> p: _bestHerbivores)
@@ -295,7 +296,6 @@ void Map::clearMap(){
   _map.clear();
   _carnivores.clear();
   _herbivores.clear();
-  _plants.clear();
 }
 
 void Map::clearBestAnimals(){
@@ -393,9 +393,6 @@ void Map::performActions(){
 
 void Map::removeDeadEntities(){
   logger->trace("Map::removeDeadEntities()");
-  for(int i=0; i<(int)_plants.size(); i++)
-    if(!_plants[i]->alive())
-      _plants.erase(_plants.begin()+i);
   for(int i=0; i<(int)_herbivores.size(); i++)
     if(!_herbivores[i]->alive())
       _herbivores.erase(_herbivores.begin()+i);
@@ -433,7 +430,7 @@ void Map::output(string tab, OutputLevel level){
 shared_ptr<Entity> Map::getSelectedEntity(){
   logger->trace("Map::getSelectedEntity()");
   shared_ptr<Entity> ret;
-  if(_carnivores.size() + _herbivores.size() + _plants.size() + _bestCarnivores.size() + _bestHerbivores.size() == 0)
+  if(_carnivores.size() + _herbivores.size() + _bestCarnivores.size() + _bestHerbivores.size() == 0)
     return ret;
   bool shiftTypeDown = false;
   if(selectedEntityType < 0){
@@ -459,15 +456,6 @@ shared_ptr<Entity> Map::getSelectedEntity(){
           if(selectedEntityId < 0)
             selectedEntityId = _herbivores.size() - 1;
           ret = _herbivores[selectedEntityId];
-        }
-        break;
-      case SelectableEntityType::SEL_PLANT:
-        if(_plants.size() > 0){
-          if(selectedEntityId >= (int)_plants.size())
-            selectedEntityId = 0;
-          if(selectedEntityId < 0)
-            selectedEntityId = _plants.size() - 1;
-          ret = _plants[selectedEntityId];
         }
         break;
       case SelectableEntityType::SEL_BEST_CARNIVORE:
@@ -506,6 +494,8 @@ shared_ptr<Entity> Map::getSelectedEntity(){
 shared_ptr<Map> Map::deepCopy(){
   logger->trace("Map::deepCopy()");
   shared_ptr<Map> ret = make_shared<Map>();
+  vector<shared_ptr<Entity>> row = vector<shared_ptr<Entity>>(_sizeX);
+  ret->_map = vector<vector<shared_ptr<Entity>>>(_sizeY, row);
   ret->_name = _name;
   ret->selectedEntityType = selectedEntityType;
   ret->selectedEntityId = selectedEntityId;
@@ -521,18 +511,31 @@ shared_ptr<Map> Map::deepCopy(){
   ret->_generationCount = _generationCount;
   ret->_resetHerbivoreCount = _resetHerbivoreCount;
   ret->_resetCarnivoreCount = _resetCarnivoreCount;
-  for(shared_ptr<Carnivore> c: _carnivores)
-    ret->_carnivores.push_back(c->deepCopy());
-  for(shared_ptr<Herbivore> h: _herbivores)
-    ret->_herbivores.push_back(h->deepCopy());
-  for(shared_ptr<Plant> p: _plants)
-    ret->_plants.push_back(p->deepCopy());
+
+  for(int y=0; y<_sizeY; y++){
+    for(int x=0; x<_sizeX; x++){
+      if(_map[y][x] != nullptr){
+        if(_map[y][x]->entityType() == EntityType::CARNIVORE){
+          ret->_map[y][x] = _map[y][x]->deepCopy();
+          ret->_carnivores.push_back(dynamic_pointer_cast<Carnivore>(ret->_map[y][x]));
+        }
+        if(_map[y][x]->entityType() == EntityType::HERBIVORE){
+          ret->_map[y][x] = _map[y][x]->deepCopy();
+          ret->_herbivores.push_back(dynamic_pointer_cast<Herbivore>(ret->_map[y][x]));
+        }
+        if(_map[y][x]->entityType() == EntityType::WATER)
+          ret->_map[y][x] = ret->_waterPrototype;
+        if(_map[y][x]->entityType() == EntityType::PLANT)
+          ret->_map[y][x] = ret->_plantPrototype;
+      }
+    }
+  }
+
   for(shared_ptr<Carnivore> c: _bestCarnivores)
     ret->_bestCarnivores.push_back(c->deepCopy());
   for(shared_ptr<Herbivore> h: _bestHerbivores)
     ret->_bestHerbivores.push_back(h->deepCopy());
   for(shared_ptr<EntitySpawner> e: _entitySpawners)
     ret->_entitySpawners.push_back(e->deepCopy());
-  ret->populateMap();
   return ret;
 }

@@ -134,27 +134,23 @@ void EntitySpawner::addHerbivores(vector<shared_ptr<Herbivore>>& entities, vecto
   }
 }
 
-void EntitySpawner::addPlants(vector<shared_ptr<Plant>>& entities, vector<vector<shared_ptr<Entity>>>& map){
+void EntitySpawner::addPlants(shared_ptr<Plant> entity, vector<vector<shared_ptr<Entity>>>& map){
   logger->trace("EntitySpawner::addPlants(entities, map)");
   int addedCount = 0;
   while(addedCount < _entityCount && _pointCloud.size() > 0){
     alg::Point p = _pointCloud.pickRandomPoint();
     if(!map[p.x()][p.y()]){
-      shared_ptr<Entity> entity = make_shared<Plant>(p.x(), p.y());
-      entities.push_back(dynamic_pointer_cast<Plant>(entity));
       map[p.x()][p.y()] = entity;
       addedCount++;
     }
   }
 }
 
-void EntitySpawner::addWater(vector<shared_ptr<Water>>& entities, vector<vector<shared_ptr<Entity>>>& map){
+void EntitySpawner::addWater(shared_ptr<Water> entity, vector<vector<shared_ptr<Entity>>>& map){
   logger->trace("EntitySpawner::addWater(entities, map)");
   while(_pointCloud.size() > 0){
     alg::Point p = _pointCloud.pickFirstPoint();
     if(!map[p.x()][p.y()]){
-      shared_ptr<Entity> entity = make_shared<Water>(p.x(), p.y());
-      entities.push_back(dynamic_pointer_cast<Water>(entity));
       map[p.x()][p.y()] = entity;
     }
   }

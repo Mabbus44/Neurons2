@@ -29,8 +29,6 @@ class Map
     Json::Value getJson();
     const vector<shared_ptr<Carnivore>>& carnivores(){return _carnivores;}
     const vector<shared_ptr<Herbivore>>& herbivores(){return _herbivores;}
-    const vector<shared_ptr<Plant>>& plants(){return _plants;}
-    const vector<shared_ptr<Water>>& water(){return _water;}
     const vector<shared_ptr<Carnivore>>& bestCarnivore(){return _bestCarnivores;}
     const vector<shared_ptr<Herbivore>>& bestHerbivore(){return _bestHerbivores;}
     shared_ptr<Entity> getSelectedEntity();
@@ -53,7 +51,6 @@ class Map
     void free();                //Frees all memory
     void clearMap();            //Removes all entities on map, and the map (keeps best animals)
     void clearBestAnimals();    //Removes best animals
-    void populateMap();         //Create map and populate it with entities from entity vectors
     shared_ptr<uint8_t[]> inputFromArea(int posX, int posY, int sensorRadius);
     void inputFromSquare(int posX, int posY, shared_ptr<uint8_t[]> input, int inputPos);
     void decideAcitons();
@@ -72,11 +69,11 @@ class Map
     int _generationCount = 0;
     int _resetHerbivoreCount = 10;
     int _resetCarnivoreCount = 5;
+    shared_ptr<Plant> _plantPrototype;
+    shared_ptr<Water> _waterPrototype;
     vector<vector<shared_ptr<Entity>>> _map;
     vector<shared_ptr<Carnivore>> _carnivores;
     vector<shared_ptr<Herbivore>> _herbivores;
-    vector<shared_ptr<Plant>> _plants;
-    vector<shared_ptr<Water>> _water;
     vector<shared_ptr<Carnivore>> _bestCarnivores;
     vector<shared_ptr<Herbivore>> _bestHerbivores;
     vector<shared_ptr<EntitySpawner>> _entitySpawners;

@@ -158,8 +158,6 @@ void NeuronsWindow::prepareRender(){
     drawText(x+96,y+69, to_string(mapRef->carnivores().size()), {0xFF, 0xFF, 0xFF},15);
     drawText(x,y+85, "Herbi count:", {0xFF, 0xFF, 0xFF},15);
     drawText(x+96,y+85, to_string(mapRef->herbivores().size()), {0xFF, 0xFF, 0xFF},15);
-    drawText(x,y+101, "Plant count:", {0xFF, 0xFF, 0xFF},15);
-    drawText(x+96,y+101, to_string(mapRef->plants().size()), {0xFF, 0xFF, 0xFF},15);
 
     //Entity stats
     x = 170;
@@ -174,10 +172,6 @@ void NeuronsWindow::prepareRender(){
         break;
       case SelectableEntityType::SEL_HERBIVORE:
         drawText(x,y, "Herbivore", {0x00, 0xFF, 0x00}, 20);
-        break;
-      case SelectableEntityType::SEL_PLANT:
-        drawText(x,y, "Plant", {0x00, 0x00, 0xFF}, 20);
-        isAnimal = false;
         break;
       case SelectableEntityType::SEL_BEST_CARNIVORE:
         drawText(x,y, "Best carnivore", {0xFF, 0x00, 0x00}, 20);

@@ -21,8 +21,8 @@ class EntitySpawner
     void free(){}
     void addCarnivores(vector<shared_ptr<Carnivore>>& entities, vector<shared_ptr<Carnivore>>& rawModels, int& rawModelId, vector<vector<shared_ptr<Entity>>>& map);
     void addHerbivores(vector<shared_ptr<Herbivore>>& entities, vector<shared_ptr<Herbivore>>& rawModels, int& rawModelId, vector<vector<shared_ptr<Entity>>>& map);
-    void addPlants(vector<shared_ptr<Plant>>& entities, vector<vector<shared_ptr<Entity>>>& map);
-    void addWater(vector<shared_ptr<Water>>& entities, vector<vector<shared_ptr<Entity>>>& map);
+    void addPlants(shared_ptr<Plant> entity, vector<vector<shared_ptr<Entity>>>& map);
+    void addWater(shared_ptr<Water> entity, vector<vector<shared_ptr<Entity>>>& map);
     void generatePointCloud();
     shared_ptr<EntitySpawner> deepCopy();
     Json::Value getJson();
